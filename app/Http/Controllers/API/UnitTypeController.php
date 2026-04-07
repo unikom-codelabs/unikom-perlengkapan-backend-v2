@@ -12,9 +12,28 @@ use Illuminate\Http\Request;
 
 class UnitTypeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = UnitType::whereNull('parent_id')->get();
+        $query = UnitType::query();
+
+        if ($request->has('parent_id')) {
+
+            if ($request->parent_id === 'null') {
+
+                $query->whereNull('parent_id');
+            } else {
+
+                $query->where('parent_id', $request->parent_id);
+            }
+
+            $data = $query->get();
+        } else {
+
+            $data = $query
+                ->whereNull('parent_id')
+                ->with('children.children')
+                ->get();
+        }
 
         return ApiResponse::success(
             UnitTypeResource::collection($data)

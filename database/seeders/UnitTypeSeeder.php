@@ -9,20 +9,19 @@ class UnitTypeSeeder extends Seeder
 {
     public function run(): void
     {
-
         $fakultas = UnitType::create([
-            'nama' => 'Fakultas Teknik',
+            'nama' => 'Fakultas',
             'parent_id' => null
         ]);
 
-        $prodi = UnitType::create([
-            'nama' => 'Teknik Informatika',
+        $fakultasTeknik = UnitType::create([
+            'nama' => 'Fakultas Teknik & Ilmu Komputer',
             'parent_id' => $fakultas->id
         ]);
 
         UnitType::create([
-            'nama' => 'Lab Programming',
-            'parent_id' => $prodi->id
+            'nama' => 'Prodi Teknik Informatika',
+            'parent_id' => $fakultasTeknik->id
         ]);
     }
 }
