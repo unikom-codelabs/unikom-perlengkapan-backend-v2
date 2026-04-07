@@ -17,7 +17,7 @@ class BarangPengajuanLainnyaController extends Controller
     {
         $data = $request->validated();
 
-        $data['jumlah_disetujui'] = null;
+        $data['jumlah_disetujui'] = 0;
 
         $data['status'] = 0;
 

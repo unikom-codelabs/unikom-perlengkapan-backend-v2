@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('daftar_pengajuan_id')->constrained('daftar_pengajuan');
             $table->foreignId('id_barang')->constrained('barang');
             $table->integer('jumlah');
-            $table->integer('jumlah_disetujui')->nullable();
+            $table->integer('jumlah_disetujui')->default(0);
             $table->boolean('status')->default(false);
             $table->timestamps();
         });

@@ -15,6 +15,7 @@ class BarangResource extends JsonResource
             'kategori' => $this->kategori,
             'tipe' => $this->tipe,
             'unit' => $this->unit,
+            'harga' => $this->harga,
             'vendor' => [
                 'id' => $this->vendor?->id,
                 'nama' => $this->vendor?->nama

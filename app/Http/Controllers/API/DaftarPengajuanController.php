@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\DaftarPengajuan\StoreDaftarPengajuanRequest;
 use App\Http\Requests\DaftarPengajuan\UpdateDaftarPengajuanRequest;
 use App\Http\Resources\DaftarPengajuanResource;
+use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
 use Illuminate\Http\Request;
 
@@ -35,12 +36,25 @@ class DaftarPengajuanController extends Controller
     {
         $data = $request->validated();
 
+        $aktivasi = AktivasiPengajuan::where('id', $data['aktivasi_pengajuan_id'])
+            ->whereDate('aktif_mulai', '<=', now())
+            ->whereDate('aktif_selesai', '>=', now())
+            ->first();
+
+        if (!$aktivasi) {
+            return ApiResponse::error(
+                'Periode pengajuan tidak aktif',
+                422
+            );
+        }
         $data['user_id'] = auth()->id();
+
         $data['id_aktivasi'] = $data['aktivasi_pengajuan_id'];
 
         unset($data['aktivasi_pengajuan_id']);
 
         if ($request->hasFile('surat_pengajuan')) {
+
             $data['surat_pengajuan'] =
                 $request->file('surat_pengajuan')
                 ->store('surat_pengajuan', 'public');
@@ -56,10 +70,10 @@ class DaftarPengajuanController extends Controller
         ]);
 
         return ApiResponse::success(
-            new DaftarPengajuanResource($pengajuan)
+            new DaftarPengajuanResource($pengajuan),
+            'Pengajuan berhasil dibuat'
         );
     }
-
     public function show(DaftarPengajuan $daftarPengajuan)
     {
 

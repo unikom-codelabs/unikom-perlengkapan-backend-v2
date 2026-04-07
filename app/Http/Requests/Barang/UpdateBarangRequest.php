@@ -21,6 +21,8 @@ class UpdateBarangRequest extends FormRequest
                 'in:atk_tahunan,atk_ujian,atk_kelas'
             ],
 
+            'harga' => 'nullable|numeric|min:0',
+
             'tipe' => [
                 'required',
                 'in:habis_pakai,tidak_habis_pakai'

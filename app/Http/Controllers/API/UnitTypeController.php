@@ -14,9 +14,7 @@ class UnitTypeController extends Controller
 {
     public function index()
     {
-        $data = UnitType::whereNull('parent_id')
-            ->with('children.children')
-            ->get();
+        $data = UnitType::whereNull('parent_id')->get();
 
         return ApiResponse::success(
             UnitTypeResource::collection($data)

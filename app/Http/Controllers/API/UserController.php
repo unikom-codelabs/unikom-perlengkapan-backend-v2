@@ -56,7 +56,7 @@ class UserController extends Controller
         $data = User::create($validated);
 
         return ApiResponse::success(
-            $data->load(['jabatan', 'unit']),
+            $data->load(['position', 'unit']),
             'user berhasil dibuat'
         );
     }

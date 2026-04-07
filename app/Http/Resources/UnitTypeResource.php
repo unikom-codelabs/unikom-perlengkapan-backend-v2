@@ -10,9 +10,8 @@ class UnitTypeResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
-            'nama' => $this->nama,
-            'parent_id' => $this->parent_id,
+            'label' => $this->nama,
+            'value' => $this->id,
 
             'children' => UnitTypeResource::collection(
                 $this->whenLoaded('children')

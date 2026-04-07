@@ -7,6 +7,7 @@ use App\Http\Controllers\API\BarangPengajuanController;
 use App\Http\Controllers\API\BarangPengajuanLainnyaController;
 use App\Http\Controllers\API\DaftarPengajuanController;
 use App\Http\Controllers\API\JabatanController;
+use App\Http\Controllers\API\PengajuanController;
 use App\Http\Controllers\API\PengumumanController;
 use App\Http\Controllers\API\UnitTypeController;
 use App\Http\Controllers\API\UserController;
@@ -24,31 +25,37 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/periode-aktif', [AktivasiController::class, 'current']);
 
+    
     Route::apiResource(
         'daftar-pengajuan',
         DaftarPengajuanController::class
     );
-
+    
     Route::post(
         'barang-pengajuan',
         [BarangPengajuanController::class, 'store']
     );
-
+    
     Route::patch(
         'barang-pengajuan/{barangPengajuan}',
         [BarangPengajuanController::class, 'updateJumlah']
     );
-
+    
     Route::delete(
         'barang-pengajuan/{barangPengajuan}',
         [BarangPengajuanController::class, 'destroy']
     );
-
+    
     Route::post(
         'barang-pengajuan-lainnya',
         [BarangPengajuanLainnyaController::class, 'store']
     );
-
+    
+    Route::get(
+        'my-pengajuan',
+        [PengajuanController::class, 'my']
+    );
+    
     Route::patch(
         'barang-pengajuan-lainnya/{barangPengajuanLainnya}',
         [BarangPengajuanLainnyaController::class, 'updateJumlah']
@@ -63,9 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::apiResource('users', UserController::class);
-
     Route::apiResource('vendors', VendorController::class);
-
     Route::apiResource('barang', BarangController::class);
 
     Route::apiResource(

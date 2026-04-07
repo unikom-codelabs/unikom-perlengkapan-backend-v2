@@ -15,7 +15,7 @@ class DaftarPengajuanResource extends JsonResource
 
             'user' => $this->user?->username,
 
-            'aktivasi_pengajuan' => $this->aktivasi?->type,
+            'aktivasi_pengajuan' => $this->aktivasi?->tipe,
 
             'surat_pengajuan' => $this->surat_pengajuan,
 

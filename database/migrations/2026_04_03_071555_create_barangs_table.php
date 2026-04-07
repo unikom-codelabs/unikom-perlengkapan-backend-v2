@@ -30,7 +30,7 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('vendors')
                 ->nullOnDelete();
-
+            $table->decimal('harga', 15, 2)->nullable();
             $table->timestamps();
         });
     }

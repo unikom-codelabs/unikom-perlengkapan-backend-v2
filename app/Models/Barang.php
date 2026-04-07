@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
     'kategori',
     'tipe',
     'unit',
+    'harga',
     'vendor_id'
 ])]
 

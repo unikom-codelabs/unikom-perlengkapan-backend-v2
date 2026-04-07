@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[Fillable([
     'nama',
-    'harga'
 ])]
 
 class Vendor extends Model

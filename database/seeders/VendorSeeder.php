@@ -9,17 +9,13 @@ class VendorSeeder extends Seeder
 {
     public function run(): void
     {
-
         Vendor::insert([
-
             [
                 'nama' => 'Gramedia'
             ],
-
             [
                 'nama' => 'Epson'
             ],
-
             [
                 'nama' => 'Kenko'
             ],

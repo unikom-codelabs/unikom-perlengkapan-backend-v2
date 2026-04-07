@@ -59,6 +59,22 @@ class PengajuanController extends Controller
         );
     }
 
+    public function my()
+    {
+        $data = DaftarPengajuan::with([
+            'user.position',
+            'user.unit',
+            'aktivasi.pengajuan',
+            'barang.barang.vendor',
+            'barangLainnya'
+        ])
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return ApiResponse::success($data);
+    }
+
     public function store(StorePengajuanRequest $request)
     {
 
