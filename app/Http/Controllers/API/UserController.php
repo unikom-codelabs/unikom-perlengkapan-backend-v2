@@ -13,6 +13,8 @@ use OpenApi\Attributes as OA;
 class UserController extends Controller
 {
 
+    //swager
+
     #[OA\Get(
         path: "/api/users",
         tags: ["User"],
