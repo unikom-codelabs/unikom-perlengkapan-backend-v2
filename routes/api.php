@@ -9,12 +9,15 @@ use App\Http\Controllers\API\DaftarPengajuanController;
 use App\Http\Controllers\API\JabatanController;
 use App\Http\Controllers\API\PengajuanController;
 use App\Http\Controllers\API\PengumumanController;
+use App\Http\Controllers\API\SwaggerTestController;
 use App\Http\Controllers\API\UnitTypeController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\VendorController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::get('swagger-test', [SwaggerTestController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
 

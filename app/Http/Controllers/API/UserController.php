@@ -8,9 +8,23 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Helpers\ApiResponse;
+use OpenApi\Attributes as OA;
 
 class UserController extends Controller
 {
+
+    #[OA\Get(
+        path: "/api/users",
+        tags: ["User"],
+        summary: "List user",
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "List user berhasil diambil"
+            )
+        ]
+    )]
     public function index()
     {
         $data = User::with([
@@ -24,6 +38,26 @@ class UserController extends Controller
     }
 
 
+    #[OA\Get(
+        path: "/api/users/{id}",
+        tags: ["User"],
+        summary: "Detail user",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Detail user berhasil diambil"
+            )
+        ]
+    )]
     public function show($id)
     {
         $data = User::with([
@@ -35,8 +69,37 @@ class UserController extends Controller
     }
 
 
+    #[OA\Post(
+        path: "/api/users",
+        tags: ["User"],
+        summary: "Tambah user",
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["username", "email", "password", "jenis_kelamin", "jabatan_id", "unit_id", "role"],
+                properties: [
+                    new OA\Property(property: "username", type: "string", example: "gilang"),
+                    new OA\Property(property: "email", type: "string", example: "gilang@mail.com"),
+                    new OA\Property(property: "password", type: "string", example: "password123"),
+                    new OA\Property(property: "nip", type: "string", example: "12345678"),
+                    new OA\Property(property: "jenis_kelamin", type: "string", example: "Pria"),
+                    new OA\Property(property: "jabatan_id", type: "integer", example: 1),
+                    new OA\Property(property: "unit_id", type: "integer", example: 1),
+                    new OA\Property(property: "role", type: "string", example: "user")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: "User berhasil dibuat"
+            )
+        ]
+    )]
     public function store(Request $request)
     {
+
         $validated = $request->validate([
             'username' => 'required',
             'email' => 'required|email|unique:users,email',
@@ -46,7 +109,6 @@ class UserController extends Controller
             'jabatan_id' => 'required|exists:jabatans,id',
             'unit_id' => 'required|exists:unit_types,id',
             'role' => 'required|in:admin,user'
-
         ]);
 
         $validated['password'] = Hash::make(
@@ -62,8 +124,43 @@ class UserController extends Controller
     }
 
 
+    #[OA\Put(
+        path: "/api/users/{id}",
+        tags: ["User"],
+        summary: "Update user",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: "username", type: "string", example: "gilang update"),
+                    new OA\Property(property: "email", type: "string", example: "baru@mail.com"),
+                    new OA\Property(property: "password", type: "string", example: "password123"),
+                    new OA\Property(property: "nip", type: "string", example: "87654321"),
+                    new OA\Property(property: "jenis_kelamin", type: "string", example: "Wanita"),
+                    new OA\Property(property: "jabatan_id", type: "integer", example: 1),
+                    new OA\Property(property: "unit_id", type: "integer", example: 1),
+                    new OA\Property(property: "role", type: "string", example: "admin")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "User berhasil diupdate"
+            )
+        ]
+    )]
     public function update(Request $request, $id)
     {
+
         $user = User::findOrFail($id);
 
         $validated = $request->validate([
@@ -78,6 +175,7 @@ class UserController extends Controller
         ]);
 
         if (isset($validated['password'])) {
+
             $validated['password'] = bcrypt(
                 $validated['password']
             );
@@ -92,8 +190,29 @@ class UserController extends Controller
     }
 
 
+    #[OA\Delete(
+        path: "/api/users/{id}",
+        tags: ["User"],
+        summary: "Hapus user",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "user berhasil dihapus"
+            )
+        ]
+    )]
     public function destroy($id)
     {
+
         User::destroy($id);
 
         return ApiResponse::success(
@@ -103,6 +222,35 @@ class UserController extends Controller
     }
 
 
+    #[OA\Patch(
+        path: "/api/users/{id}/reset-password",
+        tags: ["User"],
+        summary: "Reset password user",
+        security: [["bearerAuth" => []]],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer", example: 1)
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["password"],
+                properties: [
+                    new OA\Property(property: "password", type: "string", example: "passwordbaru123")
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "password berhasil direset"
+            )
+        ]
+    )]
     public function resetPassword(Request $request, $id)
     {
 
@@ -118,9 +266,37 @@ class UserController extends Controller
             )
         ]);
 
-        return ApiResponse::success(null,'password berhasil direset');
+        return ApiResponse::success(null, 'password berhasil direset');
     }
 
+
+    #[OA\Post(
+        path: "/api/users/update-profile",
+        tags: ["User"],
+        summary: "Update profile user login",
+        security: [["bearerAuth" => []]],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: "multipart/form-data",
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: "username", type: "string", example: "gilang update"),
+                        new OA\Property(
+                            property: "foto",
+                            type: "string",
+                            format: "binary"
+                        )
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "profile berhasil diupdate"
+            )
+        ]
+    )]
     public function updateProfile(Request $request)
     {
 
@@ -131,22 +307,31 @@ class UserController extends Controller
             'foto' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048'
         ]);
 
-
-
         if ($request->hasFile('foto')) {
+
             if ($user->foto) {
-                Storage::disk('public')->delete($user->foto);
+
+                Storage::disk('public')->delete(
+                    $user->foto
+                );
             }
-            $path = $request->file('foto')->store('profile', 'public');
+
+            $path = $request->file('foto')
+                ->store('profile', 'public');
+
             $user->foto = $path;
         }
 
         if (isset($validated['username'])) {
+
             $user->username = $validated['username'];
         }
 
         $user->save();
 
-        return ApiResponse::success($user,'profile berhasil diupdate');
+        return ApiResponse::success(
+            $user,
+            'profile berhasil diupdate'
+        );
     }
 }
