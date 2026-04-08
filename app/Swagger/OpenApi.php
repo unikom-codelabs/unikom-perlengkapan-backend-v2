@@ -10,7 +10,7 @@ use OpenApi\Attributes as OA;
 )]
 
 #[OA\Server(
-    url: "http://localhost:8000"
+    url: "http://perlengkapan.codelabspace.or.id/"
 )]
 
 #[OA\SecurityScheme(

@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000"
+            "url": "http://perlengkapan.codelabspace.or.id/"
         }
     ],
     "paths": {
@@ -275,7 +275,7 @@
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "example": "admin@mail.com"
+                                        "example": "admin@gmail.com"
                                     },
                                     "password": {
                                         "type": "string",
