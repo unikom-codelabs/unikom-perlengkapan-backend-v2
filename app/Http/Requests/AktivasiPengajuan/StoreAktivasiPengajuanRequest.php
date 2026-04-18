@@ -10,6 +10,8 @@ class StoreAktivasiPengajuanRequest extends FormRequest
     {
         return [
 
+            'id_pengajuan' => 'required|exists:pengajuan,id',
+
             'aktif_mulai' => 'required|date',
             'aktif_selesai' => 'required|date|after:aktif_mulai',
 

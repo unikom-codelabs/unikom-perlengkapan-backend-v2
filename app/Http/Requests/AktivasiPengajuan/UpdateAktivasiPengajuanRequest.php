@@ -15,6 +15,8 @@ class UpdateAktivasiPengajuanRequest extends FormRequest
     {
         return [
 
+            'id_pengajuan' => 'sometimes|exists:pengajuan,id',
+
             'aktif_mulai' => 'sometimes|date',
             'aktif_selesai' => 'sometimes|date|after:aktif_mulai',
 
