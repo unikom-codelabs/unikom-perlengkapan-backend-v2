@@ -27,5 +27,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          source: "."
-          target: "/var/www/html/unikom-perlengkapan-backend-v2"
+          script: |
+            cd /var/www/html/unikom-perlengkapan-backend-v2
+            git pull origin dev
+            composer install --no-dev --optimize-autoloader
