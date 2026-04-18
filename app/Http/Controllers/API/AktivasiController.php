@@ -8,6 +8,7 @@ use App\Http\Requests\AktivasiPengajuan\StoreAktivasiPengajuanRequest;
 use App\Http\Requests\AktivasiPengajuan\UpdateAktivasiPengajuanRequest;
 use App\Http\Resources\AktivasiPengajuanResource;
 use App\Models\AktivasiPengajuan;
+use App\Models\Pengajuan;
 use OpenApi\Attributes as OA;
 
 class AktivasiController extends Controller
@@ -58,7 +59,7 @@ class AktivasiController extends Controller
     )]
     public function store(StoreAktivasiPengajuanRequest $request)
     {
-        $pengajuan = AktivasiPengajuan::latest()->first();
+        $pengajuan = Pengajuan::latest()->first();
 
         if (! $pengajuan) {
             return ApiResponse::error('Data pengajuan belum ada', 400);
