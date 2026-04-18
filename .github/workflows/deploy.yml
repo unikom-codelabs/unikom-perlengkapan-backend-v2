@@ -10,22 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-
-      - name: Install Composer
-        run: composer install --no-dev --optimize-autoloader
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          ssh_key: ${{ secrets.SSH_KEY }}
-          source: "."
-          target: "/var/www/html/unikom-perlengkapan-backend-v2"
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+
+            cd /var/www/html/unikom-perlengkapan-backend-v2
+
+            git fetch origin dev
+            git reset --hard origin/dev
+
+            composer install --no-dev --optimize-autoloader
