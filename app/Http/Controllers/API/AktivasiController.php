@@ -59,7 +59,7 @@ class AktivasiController extends Controller
     )]
     public function store(StoreAktivasiPengajuanRequest $request)
     {
-        $pengajuan = Pengajuan::latest()->first();
+        $pengajuan = Pengajuan::orderBy('id','desc')->first();
 
         if (! $pengajuan) {
             return ApiResponse::error('Data pengajuan belum ada', 400);
