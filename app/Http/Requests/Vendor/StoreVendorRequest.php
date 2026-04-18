@@ -14,8 +14,7 @@ class StoreVendorRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nama' => 'required|string|max:255|unique:vendors,nama',
-            'harga' => 'nullable|numeric|min:0'
+            'nama' => 'required|string|max:255|unique:vendors,nama'
         ];
     }
 }

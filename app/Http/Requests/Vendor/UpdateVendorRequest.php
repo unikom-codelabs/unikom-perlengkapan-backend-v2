@@ -17,7 +17,6 @@ class UpdateVendorRequest extends FormRequest
 
         return [
             'nama' => "required|string|max:255|unique:vendors,nama,$id",
-            'harga' => 'nullable|numeric|min:0'
         ];
     }
 }
