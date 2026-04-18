@@ -13,6 +13,7 @@ use OpenApi\Attributes as OA;
 
 class AktivasiController extends Controller
 {
+    // swager aktivasi
     #[OA\Get(
         path: "/api/aktivasi-pengajuan",
         tags: ["Aktivasi Pengajuan"],
