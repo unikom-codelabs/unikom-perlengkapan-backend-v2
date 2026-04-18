@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+//Helper AI API RESPONSE
+
 class ApiResponse
 {
     public static function success($data = null, $message = 'OK')
