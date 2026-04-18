@@ -57,6 +57,7 @@ class AktivasiController extends Controller
             new OA\Response(response: 201, description: "Periode berhasil dibuat")
         ]
     )]
+
     public function store(StoreAktivasiPengajuanRequest $request)
     {
         if ($request->status_aktif) {
@@ -128,6 +129,7 @@ class AktivasiController extends Controller
             new OA\Response(response: 422, description: "Validasi gagal")
         ]
     )]
+    
     public function update(UpdateAktivasiPengajuanRequest $request, AktivasiPengajuan $aktivasiPengajuan)
     {
         if ($request->status_aktif) {
