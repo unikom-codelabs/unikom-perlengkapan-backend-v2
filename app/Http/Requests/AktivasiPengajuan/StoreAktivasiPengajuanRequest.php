@@ -6,6 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreAktivasiPengajuanRequest extends FormRequest
 {
+
     public function rules(): array
     {
         return [
@@ -13,6 +14,7 @@ class StoreAktivasiPengajuanRequest extends FormRequest
             'id_pengajuan' => 'required|exists:pengajuan,id',
 
             'aktif_mulai' => 'required|date',
+
             'aktif_selesai' => 'required|date|after:aktif_mulai',
 
             'tipe' => 'required|in:rutin,nonrutin',

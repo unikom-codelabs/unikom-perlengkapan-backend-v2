@@ -29,4 +29,25 @@ class AktivasiPengajuan extends Model
     {
         return $this->hasMany(DaftarPengajuan::class, 'id_aktivasi');
     }
+
+    public function scopeKelas($query)
+    {
+        return $query->whereHas('pengajuan', function ($q) {
+            $q->where('tipe', 'kelas');
+        });
+    }
+
+    public function scopeUjian($query)
+    {
+        return $query->whereHas('pengajuan', function ($q) {
+            $q->where('tipe', 'ujian');
+        });
+    }
+
+    public function scopeTahunan($query)
+    {
+        return $query->whereHas('pengajuan', function ($q) {
+            $q->where('tipe', 'tahunan');
+        });
+    }
 }
