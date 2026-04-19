@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Pengajuan;
 use OpenApi\Attributes as OA;
 
-class PengajuanController extends Controller
+class TipePengajuanController extends Controller
 {
 
     #[OA\Get(
@@ -22,6 +22,7 @@ class PengajuanController extends Controller
             )
         ]
     )]
+
     public function index()
     {
 
