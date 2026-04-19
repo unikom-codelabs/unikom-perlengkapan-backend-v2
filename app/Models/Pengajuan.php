@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 class Pengajuan extends Model
 {
-
+    public $timestamps = false;
+    
     protected $table = 'pengajuan';
 
     public function aktivasi()
