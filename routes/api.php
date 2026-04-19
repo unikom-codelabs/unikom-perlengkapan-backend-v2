@@ -86,6 +86,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         [AktivasiController::class, 'activate']
     );
 
+    Route::get(
+        'pengajuan',
+        [PengajuanController::class, 'index']
+    );
+
     Route::apiResource(
         'pengumuman',
         PengumumanController::class
