@@ -29,6 +29,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/periode-aktif', [AktivasiController::class, 'current']);
 
+     Route::apiResource(
+        'pengumuman',
+        PengumumanController::class
+    );
+
+     Route::apiResource(
+        'aktivasi-pengajuan',
+        AktivasiController::class
+    );
     
     Route::apiResource(
         'daftar-pengajuan',
@@ -77,11 +86,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('vendors', VendorController::class);
     Route::apiResource('barang', BarangController::class);
 
-    Route::apiResource(
-        'aktivasi-pengajuan',
-        AktivasiController::class
-    );
-
     Route::patch(
         'aktivasi-pengajuan/{aktivasiPengajuan}/activate',
         [AktivasiController::class, 'activate']
@@ -90,11 +94,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get(
         'pengajuan',
         [TipePengajuanController::class, 'index']
-    );
-
-    Route::apiResource(
-        'pengumuman',
-        PengumumanController::class
     );
 
     Route::apiResource(
