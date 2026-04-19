@@ -25,9 +25,12 @@ class PengajuanController extends Controller
     public function index()
     {
 
-        return response()->json(
+        $data = Pengajuan::all();
 
-            Pengajuan::all()
-        );
+        return response()->json([
+            'success' => true,
+            'message' => 'OK',
+            'data' => $data
+        ]);
     }
 }
