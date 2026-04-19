@@ -12,6 +12,7 @@ use App\Http\Controllers\API\PengumumanController;
 use App\Http\Controllers\API\SwaggerTestController;
 use App\Http\Controllers\API\UnitTypeController;
 use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\API\TipePengajuanController;
 use App\Http\Controllers\API\VendorController;
 use Illuminate\Support\Facades\Route;
 
@@ -88,7 +89,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::get(
         'pengajuan',
-        [PengajuanController::class, 'index']
+        [TipePengajuanController::class, 'index']
     );
 
     Route::apiResource(
