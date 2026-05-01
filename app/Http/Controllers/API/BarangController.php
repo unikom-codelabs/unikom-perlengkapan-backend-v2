@@ -23,7 +23,7 @@ class BarangController extends Controller
     {
         return ApiResponse::success(
             BarangResource::collection(
-                Barang::with('vendor')->latest()->paginate(10)
+                Barang::with('vendor')->latest()->get()
             )
         );
     }
