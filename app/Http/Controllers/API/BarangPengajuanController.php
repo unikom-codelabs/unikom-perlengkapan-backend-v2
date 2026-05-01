@@ -13,28 +13,27 @@ use OpenApi\Attributes as OA;
 
 class BarangPengajuanController extends Controller
 {
-
     #[OA\Post(
-        path: "/api/barang-pengajuan",
-        tags: ["Barang Pengajuan"],
-        summary: "Tambah barang pengajuan",
-        security: [["bearerAuth" => []]],
+        path: '/api/barang-pengajuan',
+        tags: ['Barang Pengajuan'],
+        summary: 'Tambah barang pengajuan',
+        security: [['bearerAuth' => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["barang_id", "jumlah"],
+                required: ['barang_id', 'jumlah'],
                 properties: [
-                    new OA\Property(property: "barang_id", type: "integer", example: 1),
-                    new OA\Property(property: "jumlah", type: "integer", example: 10),
-                    new OA\Property(property: "keterangan", type: "string", example: "Untuk kebutuhan operasional")
+                    new OA\Property(property: 'barang_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'jumlah', type: 'integer', example: 10),
+                    new OA\Property(property: 'keterangan', type: 'string', example: 'Untuk kebutuhan operasional'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 201,
-                description: "Barang berhasil ditambahkan"
-            )
+                description: 'Barang berhasil ditambahkan'
+            ),
         ]
     )]
     public function store(StoreBarangPengajuanRequest $request)
@@ -48,42 +47,46 @@ class BarangPengajuanController extends Controller
 
         $barang = BarangPengajuan::create($data);
 
-        return ApiResponse::success($barang, 'Barang berhasil ditambahkan');
+        return ApiResponse::success(
+            new BarangPengajuanResource(
+                $barang->load('barang')
+            )
+        );
     }
 
     #[OA\Patch(
-        path: "/api/barang-pengajuan/{id}/approve",
-        tags: ["Barang Pengajuan"],
-        summary: "Approve barang pengajuan",
-        security: [["bearerAuth" => []]],
+        path: '/api/barang-pengajuan/{id}/approve',
+        tags: ['Barang Pengajuan'],
+        summary: 'Approve barang pengajuan',
+        security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(
-                name: "id",
-                in: "path",
+                name: 'id',
+                in: 'path',
                 required: true,
-                description: "ID Barang Pengajuan",
-                schema: new OA\Schema(type: "integer", example: 1)
-            )
+                description: 'ID Barang Pengajuan',
+                schema: new OA\Schema(type: 'integer', example: 1)
+            ),
         ],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["jumlah_disetujui", "status"],
+                required: ['jumlah_disetujui', 'status'],
                 properties: [
-                    new OA\Property(property: "jumlah_disetujui", type: "integer", example: 5),
-                    new OA\Property(property: "status", type: "integer", example: 1, description: "1=approve, 2=reject")
+                    new OA\Property(property: 'jumlah_disetujui', type: 'integer', example: 5),
+                    new OA\Property(property: 'status', type: 'integer', example: 1, description: '1=approve, 2=reject'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Barang berhasil di approve"
+                description: 'Barang berhasil di approve'
             ),
             new OA\Response(
                 response: 422,
-                description: "Validasi gagal"
-            )
+                description: 'Validasi gagal'
+            ),
         ]
     )]
     public function approve(Request $request, BarangPengajuan $barangPengajuan)
@@ -93,13 +96,13 @@ class BarangPengajuanController extends Controller
             'jumlah_disetujui' => [
                 'required',
                 'integer',
-                'min:0'
+                'min:0',
             ],
 
             'status' => [
                 'required',
-                'in:1,2'
-            ]
+                'in:1,2',
+            ],
 
         ]);
 
@@ -107,7 +110,7 @@ class BarangPengajuanController extends Controller
 
             'jumlah_disetujui' => $validated['jumlah_disetujui'],
 
-            'status' => $validated['status']
+            'status' => $validated['status'],
 
         ]);
 
@@ -121,34 +124,34 @@ class BarangPengajuanController extends Controller
     }
 
     #[OA\Put(
-        path: "/api/barang-pengajuan/{id}",
-        tags: ["Barang Pengajuan"],
-        summary: "Update barang pengajuan",
-        security: [["bearerAuth" => []]],
+        path: '/api/barang-pengajuan/{id}',
+        tags: ['Barang Pengajuan'],
+        summary: 'Update barang pengajuan',
+        security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(
-                name: "id",
-                in: "path",
+                name: 'id',
+                in: 'path',
                 required: true,
-                description: "ID Barang Pengajuan",
-                schema: new OA\Schema(type: "integer", example: 1)
-            )
+                description: 'ID Barang Pengajuan',
+                schema: new OA\Schema(type: 'integer', example: 1)
+            ),
         ],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: "barang_id", type: "integer", example: 1),
-                    new OA\Property(property: "jumlah", type: "integer", example: 15),
-                    new OA\Property(property: "keterangan", type: "string", example: "Update kebutuhan")
+                    new OA\Property(property: 'barang_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'jumlah', type: 'integer', example: 15),
+                    new OA\Property(property: 'keterangan', type: 'string', example: 'Update kebutuhan'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Barang berhasil diupdate"
-            )
+                description: 'Barang berhasil diupdate'
+            ),
         ]
     )]
     public function update(
@@ -174,24 +177,24 @@ class BarangPengajuanController extends Controller
     }
 
     #[OA\Delete(
-        path: "/api/barang-pengajuan/{id}",
-        tags: ["Barang Pengajuan"],
-        summary: "Hapus barang pengajuan",
-        security: [["bearerAuth" => []]],
+        path: '/api/barang-pengajuan/{id}',
+        tags: ['Barang Pengajuan'],
+        summary: 'Hapus barang pengajuan',
+        security: [['bearerAuth' => []]],
         parameters: [
             new OA\Parameter(
-                name: "id",
-                in: "path",
+                name: 'id',
+                in: 'path',
                 required: true,
-                description: "ID Barang Pengajuan",
-                schema: new OA\Schema(type: "integer", example: 1)
-            )
+                description: 'ID Barang Pengajuan',
+                schema: new OA\Schema(type: 'integer', example: 1)
+            ),
         ],
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Barang berhasil dihapus"
-            )
+                description: 'Barang berhasil dihapus'
+            ),
         ]
     )]
     public function destroy(BarangPengajuan $barangPengajuan)

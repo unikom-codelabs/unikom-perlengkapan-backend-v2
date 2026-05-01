@@ -10,6 +10,12 @@ class StoreBarangPengajuanRequest extends FormRequest
     public function rules(): array
     {
         return [
+
+            'daftar_pengajuan_id' => [
+                'required',
+                'exists:daftar_pengajuan,id'
+            ],
+
             'id_barang' => [
                 'required',
                 'exists:barang,id'
