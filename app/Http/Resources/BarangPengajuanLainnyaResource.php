@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class BarangPengajuanLainnyaResource extends JsonResource
@@ -19,7 +18,11 @@ class BarangPengajuanLainnyaResource extends JsonResource
 
             'jumlah_disetujui' => $this->jumlah_disetujui,
 
-            'status' => $this->status
+            'kategori' => $this->kategori,
+
+            'satuan' => $this->satuan,
+
+            'status' => $this->status,
 
         ];
     }

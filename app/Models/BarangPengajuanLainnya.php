@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'daftar_pengajuan_id',
@@ -12,12 +12,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
     'jumlah_disetujui',
     'kategori',
     'satuan',
-    'status'
+    'status',
 ])]
 
 class BarangPengajuanLainnya extends Model
 {
-
     protected $table = 'barang_pengajuan_lainnya';
 
     public $timestamps = false;

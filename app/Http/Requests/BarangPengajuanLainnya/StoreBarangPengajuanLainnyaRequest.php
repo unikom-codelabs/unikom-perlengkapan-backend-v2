@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\BarangPengajuanLainnya;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBarangPengajuanLainnyaRequest extends FormRequest
@@ -11,29 +10,33 @@ class StoreBarangPengajuanLainnyaRequest extends FormRequest
     {
         return [
 
+            'daftar_pengajuan_id' => [
+                'required',
+                'exists:daftar_pengajuan,id',
+            ],
+
             'nama' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
             'jumlah' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             'kategori' => [
                 'required',
-                'string',
-                'max:255'
+                'in:habis pakai,tidak habis pakai',
             ],
 
             'satuan' => [
                 'required',
                 'string',
-                'max:100'
-            ]
+                'max:100',
+            ],
 
         ];
     }
