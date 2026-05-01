@@ -11,11 +11,6 @@ class StoreBarangPengajuanLainnyaRequest extends FormRequest
     {
         return [
 
-            'daftar_pengajuan_id' => [
-                'required',
-                'exists:daftar_pengajuan,id'
-            ],
-
             'nama' => [
                 'required',
                 'string',
