@@ -10,10 +10,10 @@ use App\Http\Controllers\API\JabatanController;
 use App\Http\Controllers\API\PengajuanController;
 use App\Http\Controllers\API\PengumumanController;
 use App\Http\Controllers\API\SwaggerTestController;
+use App\Http\Controllers\API\TipePengajuanController;
 use App\Http\Controllers\API\UnitTypeController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\VendorController;
-use App\Http\Controllers\API\TipePengajuanController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -29,46 +29,48 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/periode-aktif', [AktivasiController::class, 'current']);
 
-     Route::apiResource(
+    Route::apiResource('barang', BarangController::class);
+    
+    Route::apiResource(
         'pengumuman',
         PengumumanController::class
     );
 
-     Route::apiResource(
+    Route::apiResource(
         'aktivasi-pengajuan',
         AktivasiController::class
     );
-    
+
     Route::apiResource(
         'daftar-pengajuan',
         DaftarPengajuanController::class
     );
-    
+
     Route::post(
         'barang-pengajuan',
         [BarangPengajuanController::class, 'store']
     );
-    
+
     Route::patch(
         'barang-pengajuan/{barangPengajuan}',
         [BarangPengajuanController::class, 'updateJumlah']
     );
-    
+
     Route::delete(
         'barang-pengajuan/{barangPengajuan}',
         [BarangPengajuanController::class, 'destroy']
     );
-    
+
     Route::post(
         'barang-pengajuan-lainnya',
         [BarangPengajuanLainnyaController::class, 'store']
     );
-    
+
     Route::get(
         'my-pengajuan',
         [PengajuanController::class, 'my']
     );
-    
+
     Route::patch(
         'barang-pengajuan-lainnya/{barangPengajuanLainnya}',
         [BarangPengajuanLainnyaController::class, 'updateJumlah']
@@ -84,7 +86,6 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::apiResource('users', UserController::class);
     Route::apiResource('vendors', VendorController::class);
-    Route::apiResource('barang', BarangController::class);
 
     Route::patch(
         'aktivasi-pengajuan/{aktivasiPengajuan}/activate',
