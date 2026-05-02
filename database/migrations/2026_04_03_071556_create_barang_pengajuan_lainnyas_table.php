@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('nama');
             $table->integer('jumlah');
             $table->integer('jumlah_disetujui')->default(0);
-            $table->enum('kategori', ['habis pakai','tidak habis pakai']);
+            $table->enum('kategori', ['habis_pakai','tidak_habis_pakai']);
             $table->string('satuan');
             $table->boolean('status')->default(false);
         });
