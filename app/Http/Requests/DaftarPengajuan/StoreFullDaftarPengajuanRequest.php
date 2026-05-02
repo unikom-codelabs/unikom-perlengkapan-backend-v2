@@ -23,12 +23,6 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     {
         return [
 
-            // pengajuan utama
-            'aktivasi_pengajuan_id' => [
-                'required',
-                'exists:aktivasi_pengajuan,id',
-            ],
-
             'date' => [
                 'required',
                 'date',
@@ -92,9 +86,6 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     public function messages(): array
     {
         return [
-
-            'aktivasi_pengajuan_id.required' => 'Periode pengajuan wajib dipilih.',
-            'aktivasi_pengajuan_id.exists' => 'Periode pengajuan tidak valid.',
 
             'date.required' => 'Tanggal wajib diisi.',
             'date.date' => 'Format tanggal tidak valid.',

@@ -17,6 +17,13 @@ class DaftarPengajuanController extends Controller
 {
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
+        $aktivasi = AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+            ->whereDate('aktif_selesai', '>=', now())
+            ->first();
+
+        if (! $aktivasi) {
+            return ApiResponse::error('Tidak ada periode pengajuan aktif', 422);
+        }
         $data = $request->validated();
 
         DB::beginTransaction();
@@ -24,9 +31,9 @@ class DaftarPengajuanController extends Controller
         try {
 
             $pengajuan = DaftarPengajuan::create([
-                'id_aktivasi' => $data['aktivasi_pengajuan_id'],
+                'id_aktivasi' => $aktivasi->id,
                 'user_id' => auth()->id(),
-                'date' => $data['date'],
+                'date' => now(),
                 'surat_pengajuan' => $request->hasFile('surat_pengajuan')
                     ? $request->file('surat_pengajuan')->store('surat_pengajuan', 'public')
                     : '',
