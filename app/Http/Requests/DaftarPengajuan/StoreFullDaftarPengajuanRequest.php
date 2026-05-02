@@ -13,10 +13,9 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        // parse JSON dari FormData
         $this->merge([
-            'barang' => json_decode($this->input('barang'), true),
-            'barang_lainnya' => json_decode($this->input('barang_lainnya'), true),
+            'barang' => json_decode($this->input('barang') ?? '[]', true),
+            'barang_lainnya' => json_decode($this->input('barang_lainnya') ?? '[]', true),
         ]);
     }
 
@@ -27,65 +26,65 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             // pengajuan utama
             'aktivasi_pengajuan_id' => [
                 'required',
-                'exists:aktivasi_pengajuan,id'
+                'exists:aktivasi_pengajuan,id',
             ],
 
             'date' => [
                 'required',
-                'date'
+                'date',
             ],
 
             'surat_pengajuan' => [
                 'nullable',
                 'file',
                 'mimes:pdf,doc,docx',
-                'max:2048'
+                'max:2048',
             ],
 
             // barang dari master
             'barang' => [
                 'nullable',
-                'array'
+                'array',
             ],
 
             'barang.*.id_barang' => [
                 'required',
-                'exists:barang,id'
+                'exists:barang,id',
             ],
 
             'barang.*.jumlah' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             // barang lainnya
             'barang_lainnya' => [
                 'nullable',
-                'array'
+                'array',
             ],
 
             'barang_lainnya.*.nama' => [
                 'required',
                 'string',
-                'max:255'
+                'max:255',
             ],
 
             'barang_lainnya.*.jumlah' => [
                 'required',
                 'integer',
-                'min:1'
+                'min:1',
             ],
 
             'barang_lainnya.*.kategori' => [
                 'required',
-                'in:habis pakai,tidak habis pakai'
+                'in:habis pakai,tidak habis pakai',
             ],
 
             'barang_lainnya.*.satuan' => [
                 'required',
                 'string',
-                'max:100'
+                'max:100',
             ],
         ];
     }
