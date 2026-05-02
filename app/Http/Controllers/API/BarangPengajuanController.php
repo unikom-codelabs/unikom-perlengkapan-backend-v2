@@ -21,9 +21,9 @@ class BarangPengajuanController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['barang_id', 'jumlah'],
+                required: ['id_barang', 'jumlah'],
                 properties: [
-                    new OA\Property(property: 'barang_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'id_barang', type: 'integer', example: 1),
                     new OA\Property(property: 'jumlah', type: 'integer', example: 10),
                     new OA\Property(property: 'keterangan', type: 'string', example: 'Untuk kebutuhan operasional'),
                 ]
@@ -99,11 +99,7 @@ class BarangPengajuanController extends Controller
                 'min:0',
             ],
 
-            'status' => [
-                'required',
-                'in:1,2',
-            ],
-
+            'status' => ['required', 'boolean'],
         ]);
 
         $barangPengajuan->update([
@@ -115,11 +111,7 @@ class BarangPengajuanController extends Controller
         ]);
 
         return ApiResponse::success(
-
-            $barangPengajuan,
-
-            'Barang berhasil di approve'
-
+            new BarangPengajuanResource($barangPengajuan->load('barang'))
         );
     }
 
@@ -141,7 +133,7 @@ class BarangPengajuanController extends Controller
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: 'barang_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'id_barang', type: 'integer', example: 1),
                     new OA\Property(property: 'jumlah', type: 'integer', example: 15),
                     new OA\Property(property: 'keterangan', type: 'string', example: 'Update kebutuhan'),
                 ]

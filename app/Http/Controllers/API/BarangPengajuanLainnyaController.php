@@ -21,9 +21,9 @@ class BarangPengajuanLainnyaController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['nama_barang', 'jumlah'],
+                required: ['nama', 'jumlah'],
                 properties: [
-                    new OA\Property(property: 'nama_barang', type: 'string', example: 'Mouse Wireless'),
+                    new OA\Property(property: 'nama', type: 'string', example: 'Mouse Wireless'),
                     new OA\Property(property: 'jumlah', type: 'integer', example: 3),
                     new OA\Property(property: 'keterangan', type: 'string', example: 'Untuk kebutuhan divisi IT'),
                 ]
@@ -69,7 +69,7 @@ class BarangPengajuanLainnyaController extends Controller
             required: true,
             content: new OA\JsonContent(
                 properties: [
-                    new OA\Property(property: 'nama_barang', type: 'string', example: 'Keyboard Mechanical'),
+                    new OA\Property(property: 'nama', type: 'string', example: 'Keyboard Mechanical'),
                     new OA\Property(property: 'jumlah', type: 'integer', example: 5),
                     new OA\Property(property: 'keterangan', type: 'string', example: 'Update kebutuhan divisi'),
                 ]
