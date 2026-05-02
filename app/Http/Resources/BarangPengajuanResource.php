@@ -12,7 +12,9 @@ class BarangPengajuanResource extends JsonResource
 
             'id' => $this->id,
 
-            'barang' => $this->whenLoaded('barang', function () {
+            'id_barang' => $this->id_barang,
+
+            'nama_barang' => $this->whenLoaded('barang', function () {
                 return $this->barang->nama;
             }),
 

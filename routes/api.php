@@ -30,56 +30,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/periode-aktif', [AktivasiController::class, 'current']);
 
     Route::apiResource('barang', BarangController::class);
-    
-    Route::apiResource(
-        'pengumuman',
-        PengumumanController::class
-    );
 
-    Route::apiResource(
-        'aktivasi-pengajuan',
-        AktivasiController::class
-    );
+    Route::apiResource('pengumuman', PengumumanController::class);
 
-    Route::apiResource(
-        'daftar-pengajuan',
-        DaftarPengajuanController::class
-    );
+    Route::apiResource('aktivasi-pengajuan', AktivasiController::class);
 
     Route::post(
-        'barang-pengajuan',
-        [BarangPengajuanController::class, 'store']
+        'daftar-pengajuan/full',
+        [DaftarPengajuanController::class, 'storeFull']
     );
 
-    Route::patch(
-        'barang-pengajuan/{barangPengajuan}',
-        [BarangPengajuanController::class, 'updateJumlah']
-    );
+    Route::apiResource('daftar-pengajuan', DaftarPengajuanController::class)
+        ->except(['store']);
 
-    Route::delete(
-        'barang-pengajuan/{barangPengajuan}',
-        [BarangPengajuanController::class, 'destroy']
-    );
-
-    Route::post(
-        'barang-pengajuan-lainnya',
-        [BarangPengajuanLainnyaController::class, 'store']
-    );
-
-    Route::get(
-        'my-pengajuan',
-        [PengajuanController::class, 'my']
-    );
-
-    Route::patch(
-        'barang-pengajuan-lainnya/{barangPengajuanLainnya}',
-        [BarangPengajuanLainnyaController::class, 'updateJumlah']
-    );
-
-    Route::delete(
-        'barang-pengajuan-lainnya/{barangPengajuanLainnya}',
-        [BarangPengajuanLainnyaController::class, 'destroy']
-    );
+    Route::get('my-pengajuan', [PengajuanController::class, 'my']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {

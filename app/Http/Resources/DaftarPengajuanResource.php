@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class DaftarPengajuanResource extends JsonResource
@@ -24,12 +23,12 @@ class DaftarPengajuanResource extends JsonResource
             'created_at' => $this->created_at,
 
             'barang' => BarangPengajuanResource::collection(
-                $this->barang
+                $this->whenLoaded('barang')
             ),
 
             'barang_lainnya' => BarangPengajuanLainnyaResource::collection(
-                $this->barangLainnya
-            )
+                $this->whenLoaded('barangLainnya')
+            ),
 
         ];
     }
