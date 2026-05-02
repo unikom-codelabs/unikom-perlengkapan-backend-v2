@@ -70,7 +70,7 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
 
             'barang_lainnya.*.kategori' => [
                 'required',
-                'in:habis pakai,tidak habis pakai',
+                'in:habis_pakai,tidak_habis_pakai',
             ],
 
             'barang_lainnya.*.satuan' => [

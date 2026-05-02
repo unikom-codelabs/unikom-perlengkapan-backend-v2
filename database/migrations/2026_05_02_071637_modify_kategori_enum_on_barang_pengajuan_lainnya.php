@@ -16,7 +16,7 @@ return new class extends Migration {
     {
         DB::statement("
             ALTER TABLE barang_pengajuan_lainnya 
-            MODIFY kategori ENUM('habis pakai','tidak_habis_pakai')
+            MODIFY kategori ENUM('habis_pakai','tidak_habis_pakai')
         ");
     }
 };
