@@ -44,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->except(['store']);
 
     Route::get('my-pengajuan', [PengajuanController::class, 'my']);
+
+    Route::get('histori-pengajuan', [PengajuanController::class, 'histori']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
