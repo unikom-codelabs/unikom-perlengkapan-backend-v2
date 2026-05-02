@@ -22,9 +22,9 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     public function rules(): array
     {
         return [
-
+             
             'date' => [
-                'required',
+                'nullable',
                 'date',
             ],
 
@@ -35,7 +35,6 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
                 'max:2048',
             ],
 
-            // barang dari master
             'barang' => [
                 'nullable',
                 'array',
@@ -52,7 +51,6 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
                 'min:1',
             ],
 
-            // barang lainnya
             'barang_lainnya' => [
                 'nullable',
                 'array',
@@ -86,9 +84,6 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     public function messages(): array
     {
         return [
-
-            'date.required' => 'Tanggal wajib diisi.',
-            'date.date' => 'Format tanggal tidak valid.',
 
             'barang.*.id_barang.required' => 'Barang wajib dipilih.',
             'barang.*.id_barang.exists' => 'Barang tidak ditemukan.',
