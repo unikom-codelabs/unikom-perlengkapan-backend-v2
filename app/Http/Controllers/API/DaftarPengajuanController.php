@@ -24,6 +24,18 @@ class DaftarPengajuanController extends Controller
         if (! $aktivasi) {
             return ApiResponse::error('Tidak ada periode pengajuan aktif', 422);
         }
+
+        $sudahMengajukan = DaftarPengajuan::where('user_id', auth()->id())
+            ->where('id_aktivasi', $aktivasi->id)
+            ->exists();
+
+        if ($sudahMengajukan) {
+            return ApiResponse::error(
+                'Anda sudah melakukan pengajuan pada periode ini',
+                422
+            );
+        }
+
         $data = $request->validated();
 
         DB::beginTransaction();
