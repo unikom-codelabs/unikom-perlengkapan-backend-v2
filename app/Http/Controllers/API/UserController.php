@@ -333,6 +333,71 @@ class UserController extends Controller
     {
         $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
-        dd($response->json());
+        if (! $response->successful()) {
+            return ApiResponse::error('Gagal ambil data API');
+        }
+
+        $result = $response->json();
+
+        // 🔥 ambil bagian data
+        $groups = $result['data'] ?? [];
+
+        $users = [];
+
+        // 🔥 flatten semua grup (dekan, kaprodi, dll)
+        foreach ($groups as $group) {
+            foreach ($group as $item) {
+                $users[] = $item;
+            }
+        }
+
+        foreach ($users as $item) {
+
+            $nama = $item['nama'] ?? null;
+            $nip = $item['nip'] ?? null;
+
+            if (! $nama || ! $nip) {
+                continue;
+            }
+
+            $username = trim(
+                ($item['gelar_depan'] ?? '').' '.
+                $nama.' '.
+                ($item['gelar_belakang'] ?? '')
+            );
+
+            $email = EmailHelper::generate($nama, $nip);
+
+            $jabatan = Jabatan::firstOrCreate([
+                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
+            ]);
+
+            // 🔥 beda key (fakultas vs unit)
+            $unitName = $item['fakultas']
+                ?? $item['unit']
+                ?? $item['program_studi']
+                ?? 'Tidak diketahui';
+
+            $unit = UnitType::firstOrCreate([
+                'nama' => $unitName,
+            ]);
+
+            $user = User::firstOrNew(['email' => $email]);
+
+            $user->username = substr($username, 0, 255);
+            $user->nip = $nip;
+            $user->jenis_kelamin = 'Pria';
+            $user->jabatan_id = $jabatan->id;
+            $user->unit_id = $unit->id;
+            $user->role = 'user';
+
+            if (! $user->exists) {
+                $user->password = bcrypt('default123');
+            }
+
+            $user->save();
+        }
+
+        return ApiResponse::success(null, 'Sync user berhasil');
     }
 }
