@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\EmailHelper;
 use App\Http\Controllers\Controller;
+use App\Models\Jabatan;
+use App\Models\UnitType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -337,57 +340,53 @@ class UserController extends Controller
             return ApiResponse::error('Gagal ambil data API');
         }
 
-        // 🔥 FIX DI SINI
-        $data = collect($response->json())->values()->all();
+        // 🔥 ambil raw JSON
+        $raw = $response->json();
+
+        // 🔥 pastikan array numerik
+        $data = array_values($raw);
 
         foreach ($data as $item) {
 
-            try {
+            $nama = $item['nama'] ?? null;
+            $nip = $item['nip'] ?? null;
 
-                $nama = $item['nama'] ?? null;
-                $nip = $item['nip'] ?? null;
+            if (! $nama || ! $nip) {
 
-                if (! $nama || ! $nip) {
-                    continue;
-                }
-
-                $username = trim(
-                    ($item['gelar_depan'] ?? '').' '.
-                    $nama.' '.
-                    ($item['gelar_belakang'] ?? '')
-                );
-
-                $email = EmailHelper::generate($nama, $nip);
-
-                $jabatan = Jabatan::firstOrCreate([
-                    'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
-                ]);
-
-                $unit = UnitType::firstOrCreate([
-                    'nama' => $item['fakultas'] ?? 'Tidak diketahui',
-                ]);
-
-                $user = User::firstOrNew(['email' => $email]);
-
-                $user->username = substr($username, 0, 255);
-                $user->nip = $nip;
-                $user->jenis_kelamin = 'Pria';
-                $user->jabatan_id = $jabatan->id;
-                $user->unit_id = $unit->id;
-                $user->role = 'user';
-
-                if (! $user->exists) {
-                    $user->password = bcrypt('default123');
-                }
-
-                $user->save();
-
-            } catch (\Exception $e) {
-                \Log::error('SYNC ERROR', [
-                    'error' => $e->getMessage(),
-                    'data' => $item,
-                ]);
+                continue;
             }
+
+            $username = trim(
+                ($item['gelar_depan'] ?? '').' '.
+                $nama.' '.
+                ($item['gelar_belakang'] ?? '')
+            );
+
+            $email = EmailHelper::generate($nama, $nip);
+
+            $jabatan = Jabatan::firstOrCreate([
+                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
+            ]);
+
+            $unit = UnitType::firstOrCreate([
+                'nama' => $item['fakultas'] ?? 'Tidak diketahui',
+            ]);
+
+            $user = User::firstOrNew(['email' => $email]);
+
+            $user->username = substr($username, 0, 255);
+            $user->nip = $nip;
+            $user->jenis_kelamin = 'Pria';
+            $user->jabatan_id = $jabatan->id;
+            $user->unit_id = $unit->id;
+            $user->role = 'user';
+
+            if (! $user->exists) {
+                $user->password = bcrypt('default123');
+            }
+
+            $user->save();
+
         }
 
         return ApiResponse::success(null, 'Sync user berhasil');
