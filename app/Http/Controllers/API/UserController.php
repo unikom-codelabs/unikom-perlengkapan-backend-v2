@@ -342,17 +342,30 @@ class UserController extends Controller
 
         $result = $response->json();
 
+        // 🔥 ambil data utama (nested)
         $groups = $result['data'] ?? [];
 
-        $users = [];
+        $flatten = [];
 
+        // 🔥 flatten semua group (dekan, kaprodi, dll)
         foreach ($groups as $group) {
             foreach ($group as $item) {
-                $users[] = $item;
+                $flatten[] = $item;
             }
         }
 
-        foreach ($users as $item) {
+        // 🔥 deduplicate by NIP
+        $uniqueUsers = [];
+        foreach ($flatten as $item) {
+            $nip = $item['nip'] ?? null;
+            if (! $nip) {
+                continue;
+            }
+
+            $uniqueUsers[$nip] = $item;
+        }
+
+        foreach ($uniqueUsers as $item) {
 
             $nama = $item['nama'] ?? null;
             $nip = $item['nip'] ?? null;
@@ -361,18 +374,25 @@ class UserController extends Controller
                 continue;
             }
 
+            // 🔥 username
             $username = trim(
                 ($item['gelar_depan'] ?? '').' '.
                 $nama.' '.
                 ($item['gelar_belakang'] ?? '')
             );
 
+            // 🔥 email generator (fallback aman)
             $email = EmailHelper::generate($nama, $nip);
+            if (! $email) {
+                $email = strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
+            }
 
+            // 🔥 jabatan
             $jabatan = Jabatan::firstOrCreate([
                 'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
             ]);
 
+            // 🔥 unit (beda key tiap data)
             $unitName = $item['fakultas']
                 ?? $item['unit']
                 ?? $item['program_studi']
@@ -382,10 +402,12 @@ class UserController extends Controller
                 'nama' => $unitName,
             ]);
 
+            // 🔥 pakai NIP sebagai unique
             $user = User::firstOrNew(['nip' => $nip]);
 
             $user->username = substr($username, 0, 255);
             $user->nip = $nip;
+            $user->email = $email; // 🔥 FIX UTAMA
             $user->jenis_kelamin = 'Pria';
             $user->jabatan_id = $jabatan->id;
             $user->unit_id = $unit->id;
@@ -398,6 +420,8 @@ class UserController extends Controller
             $user->save();
         }
 
-        return ApiResponse::success(null, 'Sync user berhasil');
+        return ApiResponse::success([
+            'total' => count($uniqueUsers),
+        ], 'Sync user berhasil');
     }
 }
