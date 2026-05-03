@@ -342,14 +342,19 @@ class UserController extends Controller
 
         $result = $response->json();
 
-        if (! isset($result['data']) || ! is_array($result['data'])) {
+        $data = $result['data'] ?? $result;
+
+        if (! is_array($data)) {
             return ApiResponse::error('Format data API tidak valid');
         }
 
-        foreach ($result['data'] as $item) {
+        foreach ($data as $item) {
 
-            $nama = $item['nama'] ?? null;
-            $nip = $item['nip'] ?? null;
+            $nama = $item['nama']
+                ?? ($item['pegawai']['nama'] ?? null);
+
+            $nip = $item['nip']
+                ?? ($item['pegawai']['nip'] ?? null);
 
             if (! $nama || ! $nip) {
                 \Log::warning('Skip user karena nama/nip kosong', $item);
@@ -377,7 +382,7 @@ class UserController extends Controller
 
             $user->username = $username;
             $user->nip = $nip;
-            $user->jenis_kelamin = 'Pria'; 
+            $user->jenis_kelamin = 'Pria';
             $user->jabatan_id = $jabatan->id;
             $user->unit_id = $unit->id;
             $user->role = 'user';
@@ -388,7 +393,7 @@ class UserController extends Controller
 
             $user->save();
 
-            \Log::info('User tersimpan', [
+            \Log::info('User berhasil disimpan', [
                 'email' => $email,
                 'nama' => $nama,
             ]);
