@@ -414,4 +414,44 @@ class UserController extends Controller
             'total' => count($uniqueUsers),
         ], 'Sync user berhasil');
     }
+
+    public function dropdown()
+    {
+        $bagian = Jabatan::pluck('nama')
+            ->map(function ($item) {
+                if (str_contains($item, 'Dekan')) {
+                    return 'Dekan';
+                }
+                if (str_contains($item, 'Rektor')) {
+                    return 'Rektor';
+                }
+                if (str_contains($item, 'Direktur')) {
+                    return 'Direktur';
+                }
+
+                return $item;
+            })
+            ->unique()
+            ->values();
+
+        $fakultas = UnitType::where('nama', 'like', '%Fakultas%')
+            ->pluck('nama')
+            ->unique()
+            ->values();
+
+        $prodi = UnitType::where(function ($q) {
+            $q->where('nama', 'like', '%S1')
+                ->orWhere('nama', 'like', '%D3')
+                ->orWhere('nama', 'like', '%S2');
+        })
+            ->pluck('nama')
+            ->unique()
+            ->values();
+
+        return ApiResponse::success([
+            'bagian' => $bagian,
+            'fakultas' => $fakultas,
+            'prodi' => $prodi,
+        ]);
+    }
 }

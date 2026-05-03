@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::apiResource('users', UserController::class);
     Route::post('users/sync', [UserController::class, 'syncFromApi']);
+    Route::get('dropdown', [UserController::class, 'dropdown']);
     Route::apiResource('vendors', VendorController::class);
 
     Route::patch(
