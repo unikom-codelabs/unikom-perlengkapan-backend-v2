@@ -348,8 +348,19 @@ class UserController extends Controller
 
         foreach ($result['data'] as $item) {
 
-            $nama = $item['nama'] ?? 'unknown';
-            $nip = $item['nip'] ?? uniqid();
+            if (
+                ! isset($item['nama']) ||
+                ! isset($item['nip']) ||
+                ! isset($item['nama_jabatan']) ||
+                ! isset($item['fakultas'])
+            ) {
+                \Log::warning('Data user tidak lengkap', $item);
+
+                continue;
+            }
+
+            $nama = $item['nama'];
+            $nip = $item['nip'];
 
             $username = trim(
                 ($item['gelar_depan'] ?? '').' '.
@@ -360,23 +371,21 @@ class UserController extends Controller
             $email = EmailHelper::generate($nama, $nip);
 
             $jabatan = Jabatan::firstOrCreate([
-                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
+                'nama' => $item['nama_jabatan'],
             ]);
 
             $unit = UnitType::firstOrCreate([
-                'nama' => $item['fakultas'] ?? 'Tidak diketahui',
+                'nama' => $item['fakultas'],
             ]);
 
             $user = User::firstOrNew(['email' => $email]);
 
-            $user->fill([
-                'username' => $username,
-                'nip' => $nip,
-                'jenis_kelamin' => 'Pria',
-                'jabatan_id' => $jabatan->id,
-                'unit_id' => $unit->id,
-                'role' => 'user',
-            ]);
+            $user->username = $username;
+            $user->nip = $nip;
+            $user->jenis_kelamin = 'Pria';
+            $user->jabatan_id = $jabatan->id;
+            $user->unit_id = $unit->id;
+            $user->role = 'user';
 
             if (! $user->exists) {
                 $user->password = bcrypt('default123');
