@@ -345,47 +345,53 @@ class UserController extends Controller
 
         foreach ($data as $item) {
 
-            $nama = $item['nama'] ?? null;
-            $nip = $item['nip'] ?? null;
+            try {
 
-            if (! $nama || ! $nip) {
-                \Log::warning('Skip user', $item);
+                $nama = $item['nama'] ?? null;
+                $nip = $item['nip'] ?? null;
 
-                continue;
+                if (! $nama || ! $nip) {
+                    continue;
+                }
+
+                $username = trim(
+                    ($item['gelar_depan'] ?? '').' '.
+                    $nama.' '.
+                    ($item['gelar_belakang'] ?? '')
+                );
+
+                $email = EmailHelper::generate($nama, $nip);
+
+                $jabatan = Jabatan::firstOrCreate([
+                    'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
+                ]);
+
+                $unit = UnitType::firstOrCreate([
+                    'nama' => $item['fakultas'] ?? 'Tidak diketahui',
+                ]);
+
+                $user = User::firstOrNew(['email' => $email]);
+
+                $user->username = substr($username, 0, 255); // 🔥 anti panjang
+                $user->nip = $nip;
+                $user->jenis_kelamin = 'Pria';
+                $user->jabatan_id = $jabatan->id;
+                $user->unit_id = $unit->id;
+                $user->role = 'user';
+
+                if (! $user->exists) {
+                    $user->password = bcrypt('default123');
+                }
+
+                $user->save();
+
+            } catch (\Exception $e) {
+                \Log::error('ERROR SYNC USER', [
+                    'error' => $e->getMessage(),
+                    'data' => $item,
+                ]);
             }
-
-            $username = trim(
-                ($item['gelar_depan'] ?? '').' '.
-                $nama.' '.
-                ($item['gelar_belakang'] ?? '')
-            );
-
-            $email = EmailHelper::generate($nama, $nip);
-
-            $jabatan = Jabatan::firstOrCreate([
-                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
-            ]);
-
-            $unit = UnitType::firstOrCreate([
-                'nama' => $item['fakultas'] ?? 'Tidak diketahui',
-            ]);
-
-            $user = User::firstOrNew(['email' => $email]);
-
-            $user->username = $username;
-            $user->nip = $nip;
-            $user->jenis_kelamin = 'Pria';
-            $user->jabatan_id = $jabatan->id;
-            $user->unit_id = $unit->id;
-            $user->role = 'user';
-
-            if (! $user->exists) {
-                $user->password = bcrypt('default123');
-            }
-
-            $user->save();
         }
-
         return ApiResponse::success(null, 'Sync user berhasil');
     }
 }
