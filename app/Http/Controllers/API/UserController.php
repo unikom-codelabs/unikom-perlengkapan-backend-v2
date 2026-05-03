@@ -342,12 +342,10 @@ class UserController extends Controller
 
         $result = $response->json();
 
-        // 🔥 ambil bagian data
         $groups = $result['data'] ?? [];
 
         $users = [];
 
-        // 🔥 flatten semua grup (dekan, kaprodi, dll)
         foreach ($groups as $group) {
             foreach ($group as $item) {
                 $users[] = $item;
@@ -375,7 +373,6 @@ class UserController extends Controller
                 'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
             ]);
 
-            // 🔥 beda key (fakultas vs unit)
             $unitName = $item['fakultas']
                 ?? $item['unit']
                 ?? $item['program_studi']
@@ -385,7 +382,7 @@ class UserController extends Controller
                 'nama' => $unitName,
             ]);
 
-            $user = User::firstOrNew(['email' => $email]);
+            $user = User::firstOrNew(['nip' => $nip]);
 
             $user->username = substr($username, 0, 255);
             $user->nip = $nip;
