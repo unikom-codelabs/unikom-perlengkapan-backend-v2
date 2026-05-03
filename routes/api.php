@@ -51,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
     Route::apiResource('users', UserController::class);
+    Route::post('users/sync', [UserController::class, 'syncFromApi']);
     Route::apiResource('vendors', VendorController::class);
 
     Route::patch(
