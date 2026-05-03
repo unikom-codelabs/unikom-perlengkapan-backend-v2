@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
-use App\Helpers\EmailHelper;
 use App\Http\Controllers\Controller;
-use App\Models\Jabatan;
-use App\Models\UnitType;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -336,69 +333,6 @@ class UserController extends Controller
     {
         $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
-        if (! $response->successful()) {
-            return ApiResponse::error('Gagal ambil data API');
-        }
-
-        $result = $response->json();
-
-        $data = $result['data'] ?? $result;
-
-        if (! is_array($data)) {
-            return ApiResponse::error('Format data API tidak valid');
-        }
-
-        foreach ($data as $item) {
-
-            $nama = $item['nama']
-                ?? ($item['pegawai']['nama'] ?? null);
-
-            $nip = $item['nip']
-                ?? ($item['pegawai']['nip'] ?? null);
-
-            if (! $nama || ! $nip) {
-                \Log::warning('Skip user karena nama/nip kosong', $item);
-
-                continue;
-            }
-
-            $username = trim(
-                ($item['gelar_depan'] ?? '').' '.
-                $nama.' '.
-                ($item['gelar_belakang'] ?? '')
-            );
-
-            $email = EmailHelper::generate($nama, $nip);
-
-            $jabatan = Jabatan::firstOrCreate([
-                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
-            ]);
-
-            $unit = UnitType::firstOrCreate([
-                'nama' => $item['fakultas'] ?? 'Tidak diketahui',
-            ]);
-
-            $user = User::firstOrNew(['email' => $email]);
-
-            $user->username = $username;
-            $user->nip = $nip;
-            $user->jenis_kelamin = 'Pria';
-            $user->jabatan_id = $jabatan->id;
-            $user->unit_id = $unit->id;
-            $user->role = 'user';
-
-            if (! $user->exists) {
-                $user->password = bcrypt('default123');
-            }
-
-            $user->save();
-
-            \Log::info('User berhasil disimpan', [
-                'email' => $email,
-                'nama' => $nama,
-            ]);
-        }
-
-        return ApiResponse::success(null, 'Sync user berhasil');
+        dd($response->json());
     }
 }
