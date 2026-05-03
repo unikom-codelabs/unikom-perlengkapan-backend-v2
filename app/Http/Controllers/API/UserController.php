@@ -334,47 +334,55 @@ class UserController extends Controller
 
     public function syncFromApi()
     {
-        $response = Http::get('https://api.unikom.ac.id/v1/structural'); 
+        $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
         if (! $response->successful()) {
             return ApiResponse::error('Gagal ambil data API');
         }
 
-        $data = $response->json();
+        $result = $response->json();
 
-        foreach ($data as $item) {
+        if (! isset($result['data']) || ! is_array($result['data'])) {
+            return ApiResponse::error('Format data API tidak valid');
+        }
+
+        foreach ($result['data'] as $item) {
+
+            $nama = $item['nama'] ?? 'unknown';
+            $nip = $item['nip'] ?? uniqid();
 
             $username = trim(
                 ($item['gelar_depan'] ?? '').' '.
-                ($item['nama'] ?? '').' '.
+                $nama.' '.
                 ($item['gelar_belakang'] ?? '')
             );
 
-            $email = EmailHelper::generate(
-                $item['nama'],
-                $item['nip']
-            );
+            $email = EmailHelper::generate($nama, $nip);
 
             $jabatan = Jabatan::firstOrCreate([
-                'nama' => $item['nama_jabatan'],
+                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
             ]);
 
             $unit = UnitType::firstOrCreate([
-                'nama' => $item['fakultas'],
+                'nama' => $item['fakultas'] ?? 'Tidak diketahui',
             ]);
 
-            User::updateOrCreate(
-                ['email' => $email],
-                [
-                    'username' => $username,
-                    'nip' => $item['nip'],
-                    'jenis_kelamin' => 'Pria', // default
-                    'jabatan_id' => $jabatan->id,
-                    'unit_id' => $unit->id,
-                    'role' => 'user',
-                    'password' => bcrypt('default123'),
-                ]
-            );
+            $user = User::firstOrNew(['email' => $email]);
+
+            $user->fill([
+                'username' => $username,
+                'nip' => $nip,
+                'jenis_kelamin' => 'Pria',
+                'jabatan_id' => $jabatan->id,
+                'unit_id' => $unit->id,
+                'role' => 'user',
+            ]);
+
+            if (! $user->exists) {
+                $user->password = bcrypt('default123');
+            }
+
+            $user->save();
         }
 
         return ApiResponse::success(null, 'Sync user berhasil');
