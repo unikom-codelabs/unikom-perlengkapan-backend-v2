@@ -339,7 +339,6 @@ class UserController extends Controller
         }
 
         $result = $response->json();
-
         $groups = $result['data'] ?? [];
 
         $flatten = [];
@@ -389,9 +388,22 @@ class UserController extends Controller
                 ?? $item['program_studi']
                 ?? 'Tidak diketahui';
 
-            $unit = UnitType::firstOrCreate([
-                'nama' => $unitName,
-            ]);
+            if (str_contains($unitName, 'Fakultas')) {
+                $type = 'fakultas';
+            } elseif (
+                str_contains($unitName, 'S1') ||
+                str_contains($unitName, 'D3') ||
+                str_contains($unitName, 'S2')
+            ) {
+                $type = 'prodi';
+            } else {
+                $type = 'unit';
+            }
+
+            $unit = UnitType::updateOrCreate(
+                ['nama' => $unitName],
+                ['type' => $type]
+            );
 
             $user = User::firstOrNew(['nip' => $nip]);
 
@@ -434,16 +446,12 @@ class UserController extends Controller
             ->unique()
             ->values();
 
-        $fakultas = UnitType::where('nama', 'like', '%Fakultas%')
+        $fakultas = UnitType::where('type', 'fakultas')
             ->pluck('nama')
             ->unique()
             ->values();
 
-        $prodi = UnitType::where(function ($q) {
-            $q->where('nama', 'like', '%S1')
-                ->orWhere('nama', 'like', '%D3')
-                ->orWhere('nama', 'like', '%S2');
-        })
+        $prodi = UnitType::where('type', 'prodi')
             ->pluck('nama')
             ->unique()
             ->values();

@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 #[Fillable([
     'nama',
-    'parent_id'
+    'parent_id',
+     'type'
 ])]
 
 class UnitType extends Model
