@@ -9,6 +9,7 @@ use App\Models\Jabatan;
 use App\Models\UnitType;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -332,6 +333,8 @@ class UserController extends Controller
 
     public function syncFromApi()
     {
+        set_time_limit(0);
+
         $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
         if (! $response->successful()) {
@@ -349,6 +352,13 @@ class UserController extends Controller
             }
         }
 
+        $hashedPassword = bcrypt('default123');
+
+        $jabatanCache = [];
+        $unitCache = [];
+
+        $usersToInsert = [];
+
         foreach ($flatten as $item) {
 
             $nama = $item['nama'] ?? null;
@@ -358,7 +368,6 @@ class UserController extends Controller
                 continue;
             }
 
-            // ❌ SKIP kalau jabatan null
             if (empty($item['nama_jabatan'])) {
                 continue;
             }
@@ -369,14 +378,9 @@ class UserController extends Controller
                 ($item['gelar_belakang'] ?? '')
             );
 
-            $email = EmailHelper::generate($nama, $nip);
-            if (! $email) {
-                $email = strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
-            }
+            $email = EmailHelper::generate($nama, $nip)
+                ?? strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
 
-            // =========================
-            // 🔥 MAPPING JABATAN (FIX ORDER)
-            // =========================
             $fullJabatan = strtolower($item['nama_jabatan']);
 
             if (str_contains($fullJabatan, 'wakil ketua')) {
@@ -402,16 +406,15 @@ class UserController extends Controller
             } elseif (str_contains($fullJabatan, 'upt')) {
                 $jabatanName = 'Kepala UPT';
             } else {
-                continue; // skip kalau gak jelas
+                continue;
             }
 
-            $jabatan = Jabatan::firstOrCreate([
-                'nama' => $jabatanName,
-            ]);
+            if (! isset($jabatanCache[$jabatanName])) {
+                $jabatanCache[$jabatanName] = Jabatan::firstOrCreate([
+                    'nama' => $jabatanName,
+                ])->id;
+            }
 
-            // =========================
-            // 🔥 UNIT
-            // =========================
             $unitName = $item['fakultas']
                 ?? $item['unit']
                 ?? $item['program_studi']
@@ -421,28 +424,33 @@ class UserController extends Controller
                 continue;
             }
 
-            $unit = UnitType::firstOrCreate([
-                'nama' => $unitName,
-            ]);
+            if (! isset($unitCache[$unitName])) {
+                $unitCache[$unitName] = UnitType::firstOrCreate([
+                    'nama' => $unitName,
+                ])->id;
+            }
 
-            // =========================
-            // USER (TIDAK OVERWRITE MULTI ROLE)
-            // =========================
-            $user = User::create([
+            $usersToInsert[] = [
                 'username' => substr($username, 0, 255),
                 'nip' => $nip,
                 'email' => $email,
                 'jenis_kelamin' => 'Pria',
-                'jabatan_id' => $jabatan->id,
-                'unit_id' => $unit->id,
+                'jabatan_id' => $jabatanCache[$jabatanName],
+                'unit_id' => $unitCache[$unitName],
                 'role' => 'user',
-                'password' => bcrypt('default123'),
-            ]);
+                'password' => $hashedPassword,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        foreach (array_chunk($usersToInsert, 500) as $chunk) {
+            DB::table('users')->insert($chunk);
         }
 
         return ApiResponse::success([
-            'total' => count($flatten),
-        ], 'Sync user berhasil (tanpa kehilangan data)');
+            'total' => count($usersToInsert),
+        ], 'Sync super cepat berhasil 🚀');
     }
 
     public function dropdown()
