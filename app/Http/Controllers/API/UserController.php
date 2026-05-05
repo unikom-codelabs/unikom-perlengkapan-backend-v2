@@ -349,22 +349,17 @@ class UserController extends Controller
             }
         }
 
-        $uniqueUsers = [];
         foreach ($flatten as $item) {
-            $nip = $item['nip'] ?? null;
-            if (! $nip) {
-                continue;
-            }
-
-            $uniqueUsers[$nip] = $item;
-        }
-
-        foreach ($uniqueUsers as $item) {
 
             $nama = $item['nama'] ?? null;
             $nip = $item['nip'] ?? null;
 
             if (! $nama || ! $nip) {
+                continue;
+            }
+
+            // ❌ SKIP kalau jabatan null
+            if (empty($item['nama_jabatan'])) {
                 continue;
             }
 
@@ -379,67 +374,75 @@ class UserController extends Controller
                 $email = strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
             }
 
-            $fullJabatan = strtolower($item['nama_jabatan'] ?? '');
+            // =========================
+            // 🔥 MAPPING JABATAN (FIX ORDER)
+            // =========================
+            $fullJabatan = strtolower($item['nama_jabatan']);
 
             if (str_contains($fullJabatan, 'wakil ketua')) {
                 $jabatanName = 'Wakil Ketua';
             } elseif (str_contains($fullJabatan, 'ketua')) {
                 $jabatanName = 'Ketua';
+            } elseif (str_contains($fullJabatan, 'deputi')) {
+                $jabatanName = 'Deputi Wakil Rektor';
+            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
+                $jabatanName = 'Wakil Rektor';
+            } elseif (str_contains($fullJabatan, 'rektor')) {
+                $jabatanName = 'Rektor';
+            } elseif (str_contains($fullJabatan, 'wakil direktur')) {
+                $jabatanName = 'Wakil Direktur';
+            } elseif (str_contains($fullJabatan, 'direktur')) {
+                $jabatanName = 'Direktur';
             } elseif (str_contains($fullJabatan, 'dekan')) {
                 $jabatanName = 'Dekan';
             } elseif (str_contains($fullJabatan, 'kaprodi')) {
                 $jabatanName = 'Kaprodi';
             } elseif (str_contains($fullJabatan, 'sekretaris')) {
                 $jabatanName = 'Sekretaris';
-            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
-                $jabatanName = 'Wakil Rektor';
-            } elseif (str_contains($fullJabatan, 'rektor')) {
-                $jabatanName = 'Rektor';
-            } elseif (str_contains($fullJabatan, 'deputi')) {
-                $jabatanName = 'Deputi Wakil Rektor';
-            } elseif (str_contains($fullJabatan, 'wakil direktur')) {
-                $jabatanName = 'Wakil Direktur';
-            } elseif (str_contains($fullJabatan, 'direktur')) {
-                $jabatanName = 'Direktur';
             } elseif (str_contains($fullJabatan, 'upt')) {
                 $jabatanName = 'Kepala UPT';
             } else {
-                $jabatanName = 'Lainnya';
+                continue; // skip kalau gak jelas
             }
 
             $jabatan = Jabatan::firstOrCreate([
                 'nama' => $jabatanName,
             ]);
 
+            // =========================
+            // 🔥 UNIT
+            // =========================
             $unitName = $item['fakultas']
                 ?? $item['unit']
                 ?? $item['program_studi']
-                ?? 'Tidak diketahui';
+                ?? null;
+
+            if (! $unitName) {
+                continue;
+            }
 
             $unit = UnitType::firstOrCreate([
                 'nama' => $unitName,
             ]);
 
-            $user = User::firstOrNew(['nip' => $nip]);
-
-            $user->username = substr($username, 0, 255);
-            $user->nip = $nip;
-            $user->email = $email;
-            $user->jenis_kelamin = 'Pria';
-            $user->jabatan_id = $jabatan->id;
-            $user->unit_id = $unit->id;
-            $user->role = 'user';
-
-            if (! $user->exists) {
-                $user->password = bcrypt('default123');
-            }
-
-            $user->save();
+            // =========================
+            // USER (TIDAK OVERWRITE MULTI ROLE)
+            // =========================
+            $user = User::create([
+                'username' => substr($username, 0, 255),
+                'nip' => $nip,
+                'email' => $email,
+                'jenis_kelamin' => 'Pria',
+                'jabatan_id' => $jabatan->id,
+                'unit_id' => $unit->id,
+                'role' => 'user',
+                'password' => bcrypt('default123'),
+            ]);
         }
 
         return ApiResponse::success([
-            'total' => count($uniqueUsers),
-        ], 'Sync user berhasil');
+            'total' => count($flatten),
+        ], 'Sync user berhasil (tanpa kehilangan data)');
     }
 
     public function dropdown()
