@@ -378,8 +378,7 @@ class UserController extends Controller
                 ($item['gelar_belakang'] ?? '')
             );
 
-            $email = EmailHelper::generate($nama, $nip)
-                ?? strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
+           $email = ($nip . '_' . md5($item['nama_jabatan'])) . '@unikom.ac.id';
 
             $fullJabatan = strtolower($item['nama_jabatan']);
 
