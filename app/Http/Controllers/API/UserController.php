@@ -379,8 +379,36 @@ class UserController extends Controller
                 $email = strtolower(str_replace(' ', '', $nama)).$nip.'@unikom.ac.id';
             }
 
+            $fullJabatan = strtolower($item['nama_jabatan'] ?? '');
+
+            if (str_contains($fullJabatan, 'wakil ketua')) {
+                $jabatanName = 'Wakil Ketua';
+            } elseif (str_contains($fullJabatan, 'ketua')) {
+                $jabatanName = 'Ketua';
+            } elseif (str_contains($fullJabatan, 'dekan')) {
+                $jabatanName = 'Dekan';
+            } elseif (str_contains($fullJabatan, 'kaprodi')) {
+                $jabatanName = 'Kaprodi';
+            } elseif (str_contains($fullJabatan, 'sekretaris')) {
+                $jabatanName = 'Sekretaris';
+            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
+                $jabatanName = 'Wakil Rektor';
+            } elseif (str_contains($fullJabatan, 'rektor')) {
+                $jabatanName = 'Rektor';
+            } elseif (str_contains($fullJabatan, 'deputi')) {
+                $jabatanName = 'Deputi Wakil Rektor';
+            } elseif (str_contains($fullJabatan, 'wakil direktur')) {
+                $jabatanName = 'Wakil Direktur';
+            } elseif (str_contains($fullJabatan, 'direktur')) {
+                $jabatanName = 'Direktur';
+            } elseif (str_contains($fullJabatan, 'upt')) {
+                $jabatanName = 'Kepala UPT';
+            } else {
+                $jabatanName = 'Lainnya';
+            }
+
             $jabatan = Jabatan::firstOrCreate([
-                'nama' => $item['nama_jabatan'] ?? 'Tidak diketahui',
+                'nama' => $jabatanName,
             ]);
 
             $unitName = $item['fakultas']
@@ -388,22 +416,10 @@ class UserController extends Controller
                 ?? $item['program_studi']
                 ?? 'Tidak diketahui';
 
-            if (str_contains($unitName, 'Fakultas')) {
-                $type = 'fakultas';
-            } elseif (
-                str_contains($unitName, 'S1') ||
-                str_contains($unitName, 'D3') ||
-                str_contains($unitName, 'S2')
-            ) {
-                $type = 'prodi';
-            } else {
-                $type = 'unit';
-            }
-
-            $unit = UnitType::updateOrCreate(
-                ['nama' => $unitName],
-                ['type' => $type]
-            );
+            $unit = UnitType::firstOrCreate([
+                'nama' => $unitName,
+                'parent_id' => $jabatan->id,
+            ]);
 
             $user = User::firstOrNew(['nip' => $nip]);
 
@@ -429,37 +445,17 @@ class UserController extends Controller
 
     public function dropdown()
     {
-        $bagian = Jabatan::pluck('nama')
-            ->map(function ($item) {
-                if (str_contains($item, 'Dekan')) {
-                    return 'Dekan';
-                }
-                if (str_contains($item, 'Rektor')) {
-                    return 'Rektor';
-                }
-                if (str_contains($item, 'Direktur')) {
-                    return 'Direktur';
-                }
+        $jabatans = Jabatan::with('units')->get();
 
-                return $item;
-            })
-            ->unique()
-            ->values();
+        $result = [];
 
-        $fakultas = UnitType::where('type', 'fakultas')
-            ->pluck('nama')
-            ->unique()
-            ->values();
+        foreach ($jabatans as $jabatan) {
+            $result[] = [
+                'nama' => $jabatan->nama,
+                'units' => $jabatan->units->pluck('nama')->values(),
+            ];
+        }
 
-        $prodi = UnitType::where('type', 'prodi')
-            ->pluck('nama')
-            ->unique()
-            ->values();
-
-        return ApiResponse::success([
-            'bagian' => $bagian,
-            'fakultas' => $fakultas,
-            'prodi' => $prodi,
-        ]);
+        return ApiResponse::success($result);
     }
 }
