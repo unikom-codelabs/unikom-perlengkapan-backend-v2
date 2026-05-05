@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
-use App\Helpers\EmailHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Jabatan;
 use App\Models\UnitType;
@@ -378,34 +377,50 @@ class UserController extends Controller
                 ($item['gelar_belakang'] ?? '')
             );
 
-           $email = ($nip . '_' . md5($item['nama_jabatan'])) . '@unikom.ac.id';
+            $email = ($nip.'_'.md5($item['nama_jabatan'])).'@unikom.ac.id';
 
             $fullJabatan = strtolower($item['nama_jabatan']);
 
+            // PRIORITAS PALING SPESIFIK DULU
+
             if (str_contains($fullJabatan, 'wakil ketua')) {
                 $jabatanName = 'Wakil Ketua';
+
             } elseif (str_contains($fullJabatan, 'ketua')) {
                 $jabatanName = 'Ketua';
+
             } elseif (str_contains($fullJabatan, 'deputi')) {
                 $jabatanName = 'Deputi Wakil Rektor';
-            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
-                $jabatanName = 'Wakil Rektor';
-            } elseif (str_contains($fullJabatan, 'rektor')) {
-                $jabatanName = 'Rektor';
+
             } elseif (str_contains($fullJabatan, 'wakil direktur')) {
                 $jabatanName = 'Wakil Direktur';
-            } elseif (str_contains($fullJabatan, 'direktur')) {
+
+            } elseif (
+                str_contains($fullJabatan, 'direktur') ||
+                str_contains($fullJabatan, 'direktorat')
+            ) {
                 $jabatanName = 'Direktur';
+
+            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
+                $jabatanName = 'Wakil Rektor';
+
+            } elseif (str_contains($fullJabatan, 'rektor')) {
+                $jabatanName = 'Rektor';
+
             } elseif (str_contains($fullJabatan, 'dekan')) {
                 $jabatanName = 'Dekan';
+
             } elseif (str_contains($fullJabatan, 'kaprodi')) {
                 $jabatanName = 'Kaprodi';
+
             } elseif (str_contains($fullJabatan, 'sekretaris')) {
                 $jabatanName = 'Sekretaris';
+
             } elseif (str_contains($fullJabatan, 'upt')) {
                 $jabatanName = 'Kepala UPT';
+
             } else {
-                continue;
+                continue; 
             }
 
             if (! isset($jabatanCache[$jabatanName])) {
@@ -449,7 +464,7 @@ class UserController extends Controller
 
         return ApiResponse::success([
             'total' => count($usersToInsert),
-        ], 'Sync super cepat berhasil 🚀');
+        ], 'Sync berhasil');
     }
 
     public function dropdown()
