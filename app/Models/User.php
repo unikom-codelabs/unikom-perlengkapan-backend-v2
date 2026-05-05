@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,26 +18,26 @@ use Laravel\Sanctum\HasApiTokens;
     'foto',
     'jabatan_id',
     'unit_id',
-    'role'
+    'role',
 ])]
 
 #[Hidden([
     'password',
-    'remember_token'
+    'remember_token',
 ])]
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected function casts(): array
     {
         return [
-            'password' => 'hashed'
+            'password' => 'hashed',
         ];
     }
 
-    public function position()
+    public function jabatan()
     {
         return $this->belongsTo(Jabatan::class, 'jabatan_id');
     }
