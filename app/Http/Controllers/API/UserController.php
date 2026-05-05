@@ -381,8 +381,6 @@ class UserController extends Controller
 
             $fullJabatan = strtolower($item['nama_jabatan']);
 
-            // PRIORITAS PALING SPESIFIK DULU
-
             if (str_contains($fullJabatan, 'wakil ketua')) {
                 $jabatanName = 'Wakil Ketua';
 
