@@ -31,7 +31,7 @@ class UserController extends Controller
     public function index()
     {
         $data = User::with([
-            'position',
+            'jabatan',
             'unit',
         ])->paginate(10);
 
@@ -117,7 +117,7 @@ class UserController extends Controller
         $data = User::create($validated);
 
         return ApiResponse::success(
-            $data->load(['position', 'unit']),
+            $data->load(['jabatan', 'unit']),
             'user berhasil dibuat'
         );
     }
@@ -182,7 +182,7 @@ class UserController extends Controller
         $user->update($validated);
 
         return ApiResponse::success(
-            $user->load(['position', 'unit']),
+            $user->load(['jabatan', 'unit']),
             'user berhasil diupdate'
         );
     }
