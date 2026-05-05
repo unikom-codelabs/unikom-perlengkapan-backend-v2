@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4b53d5bf59ae999cbae630c5dbe67689",
+    "content-hash": "dd17cc123fd66bc95fc592c1fa0b8d16",
     "packages": [
         {
             "name": "brick/math",
@@ -6484,25 +6484,25 @@
         },
         {
             "name": "zircote/swagger-php",
-            "version": "6.0.6",
+            "version": "6.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/zircote/swagger-php.git",
-                "reference": "9447c1f45b5ae93185caea9a0c8e298399188a25"
+                "reference": "f66289ab9c9c3a1cf70222e0bebbe7c6c7109f2f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/9447c1f45b5ae93185caea9a0c8e298399188a25",
-                "reference": "9447c1f45b5ae93185caea9a0c8e298399188a25",
+                "url": "https://api.github.com/repos/zircote/swagger-php/zipball/f66289ab9c9c3a1cf70222e0bebbe7c6c7109f2f",
+                "reference": "f66289ab9c9c3a1cf70222e0bebbe7c6c7109f2f",
                 "shasum": ""
             },
             "require": {
-                "ext-json": "*",
                 "nikic/php-parser": "^4.19 || ^5.0",
                 "php": ">=8.2",
                 "phpstan/phpdoc-parser": "^2.0",
                 "psr/log": "^1.1 || ^2.0 || ^3.0",
                 "radebatz/type-info-extras": "^1.0.2",
+                "symfony/console": "^7.4 || ^8.0",
                 "symfony/deprecation-contracts": "^2 || ^3",
                 "symfony/finder": "^5.0 || ^6.0 || ^7.0 || ^8.0",
                 "symfony/yaml": "^5.4 || ^6.0 || ^7.0 || ^8.0"
@@ -6515,7 +6515,7 @@
                 "doctrine/annotations": "^2.0",
                 "friendsofphp/php-cs-fixer": "^3.62.0",
                 "phpstan/phpstan": "^2.0",
-                "phpunit/phpunit": "^11.5",
+                "phpunit/phpunit": "^11.5 || >=12.5.22",
                 "rector/rector": "^2.3.1"
             },
             "bin": [
@@ -6562,7 +6562,7 @@
             ],
             "support": {
                 "issues": "https://github.com/zircote/swagger-php/issues",
-                "source": "https://github.com/zircote/swagger-php/tree/6.0.6"
+                "source": "https://github.com/zircote/swagger-php/tree/6.1.2"
             },
             "funding": [
                 {
@@ -6570,7 +6570,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-02-28T06:42:58+00:00"
+            "time": "2026-04-28T04:47:53+00:00"
         }
     ],
     "packages-dev": [
