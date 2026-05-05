@@ -418,7 +418,6 @@ class UserController extends Controller
 
             $unit = UnitType::firstOrCreate([
                 'nama' => $unitName,
-                'parent_id' => $jabatan->id,
             ]);
 
             $user = User::firstOrNew(['nip' => $nip]);
@@ -445,14 +444,33 @@ class UserController extends Controller
 
     public function dropdown()
     {
-        $jabatans = Jabatan::with('units')->get();
+        $data = User::with(['jabatan', 'unit'])->get();
+
+        $grouped = [];
+
+        foreach ($data as $user) {
+            if (! $user->jabatan || ! $user->unit) {
+                continue;
+            }
+
+            $jabatan = $user->jabatan->nama;
+            $unit = $user->unit->nama;
+
+            if (! isset($grouped[$jabatan])) {
+                $grouped[$jabatan] = [];
+            }
+
+            if (! in_array($unit, $grouped[$jabatan])) {
+                $grouped[$jabatan][] = $unit;
+            }
+        }
 
         $result = [];
 
-        foreach ($jabatans as $jabatan) {
+        foreach ($grouped as $jabatan => $units) {
             $result[] = [
-                'nama' => $jabatan->nama,
-                'units' => $jabatan->units->pluck('nama')->values(),
+                'nama' => $jabatan,
+                'units' => array_values($units),
             ];
         }
 
