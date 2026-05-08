@@ -22,7 +22,7 @@ class PengajuanResource extends JsonResource
                 'nama' => $this->user?->username,
                 'nip' => $this->user?->nip,
 
-                'jabatan' => $this->user?->position?->nama,
+                'jabatan' => $this->user?->jabatan?->nama,
 
                 'unit' => $this->user?->unit?->nama
             ],

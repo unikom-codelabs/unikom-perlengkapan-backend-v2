@@ -32,7 +32,7 @@ class AuthController extends Controller
             return ApiResponse::error('email atau password salah', 401);
         }
 
-        $user = Auth::user()->load(['position', 'unit']);
+        $user = Auth::user()->load(['jabatan', 'unit']);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -52,7 +52,7 @@ class AuthController extends Controller
     public function me()
     {
         return ApiResponse::success(
-            auth()->user()->load(['position', 'unit'])
+            auth()->user()->load(['jabatan', 'unit'])
         );
     }
 

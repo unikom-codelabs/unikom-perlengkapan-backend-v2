@@ -23,7 +23,7 @@ class PengajuanController extends Controller
     public function index()
     {
         $query = DaftarPengajuan::with([
-            'user.position',
+            'user.jabatan',
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
@@ -51,7 +51,7 @@ class PengajuanController extends Controller
     public function show($id)
     {
         $query = DaftarPengajuan::with([
-            'user.position',
+            'user.jabatan',
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
@@ -80,7 +80,7 @@ class PengajuanController extends Controller
     public function my()
     {
         $data = DaftarPengajuan::with([
-            'user.position',
+            'user.jabatan',
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
@@ -110,7 +110,7 @@ class PengajuanController extends Controller
         $bagian = $request->bagian_id;
 
         $query = DaftarPengajuan::with([
-            'user.position',
+            'user.jabatan',
             'user.unit',
             'aktivasi',
             'barang.barang.vendor',
