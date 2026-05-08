@@ -5,10 +5,8 @@ namespace App\Http\Controllers\API;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PengajuanResource;
-use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
 use App\Models\Jabatan;
-use App\Models\UnitType;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -150,38 +148,36 @@ class PengajuanController extends Controller
         );
     }
 
-    public function historiFilter()
+    #[OA\Get(
+        path: '/api/histori-pengajuan/my',
+        tags: ['Pengajuan'],
+        summary: 'Histori pengajuan milik user login',
+        security: [['bearerAuth' => []]]
+    )]
+    public function historiMy(Request $request)
     {
-        // Tahun yang tersedia
-        $tahun = DaftarPengajuan::selectRaw('YEAR(date) as tahun')
-            ->distinct()
-            ->orderBy('tahun', 'desc')
-            ->pluck('tahun');
+        $tahun = $request->tahun;
 
-        // Aktivasi
-        $aktivasi = AktivasiPengajuan::select(
-            'id',
-            'tipe',
-            'tahun_akademik'
-        )->get();
+        $query = DaftarPengajuan::with([
+            'user.jabatan',
+            'user.unit',
+            'aktivasi',
+            'barang',
+            'barang.barang.vendor',
+            'barangLainnya',
+        ])
+            ->where('user_id', auth()->id());
 
-        // Jabatan
-        $jabatan = Jabatan::select(
-            'id',
-            'nama'
-        )->get();
+        // Filter tahun
+        if ($tahun) {
+            $query->whereYear('date', $tahun);
+        }
 
-        // Bagian
-        $bagian = UnitType::select(
-            'id',
-            'nama'
-        )->get();
+        $data = $query->latest()->get();
 
-        return ApiResponse::success([
-            'tahun' => $tahun,
-            'aktivasi' => $aktivasi,
-            'jabatan' => $jabatan,
-            'bagian' => $bagian,
-        ], 'Filter histori');
+        return ApiResponse::success(
+            PengajuanResource::collection($data),
+            'Histori pengajuan saya'
+        );
     }
 }
