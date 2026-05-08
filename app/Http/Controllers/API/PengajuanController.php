@@ -2,21 +2,23 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PengajuanResource;
+use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
-use App\Helpers\ApiResponse;
+use App\Models\Jabatan;
+use App\Models\UnitType;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
 class PengajuanController extends Controller
 {
-
     #[OA\Get(
-        path: "/api/pengajuan",
-        tags: ["Pengajuan"],
-        summary: "List pengajuan",
-        security: [["bearerAuth" => []]]
+        path: '/api/pengajuan',
+        tags: ['Pengajuan'],
+        summary: 'List pengajuan',
+        security: [['bearerAuth' => []]]
     )]
     public function index()
     {
@@ -25,10 +27,9 @@ class PengajuanController extends Controller
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
-            'barangLainnya'
+            'barangLainnya',
         ]);
 
-        // 🔒 user hanya lihat miliknya
         if (auth()->user()->role !== 'admin') {
             $query->where('user_id', auth()->id());
         }
@@ -41,12 +42,11 @@ class PengajuanController extends Controller
         );
     }
 
-
     #[OA\Get(
-        path: "/api/pengajuan/{id}",
-        tags: ["Pengajuan"],
-        summary: "Detail pengajuan",
-        security: [["bearerAuth" => []]]
+        path: '/api/pengajuan/{id}',
+        tags: ['Pengajuan'],
+        summary: 'Detail pengajuan',
+        security: [['bearerAuth' => []]]
     )]
     public function show($id)
     {
@@ -55,7 +55,7 @@ class PengajuanController extends Controller
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
-            'barangLainnya'
+            'barangLainnya',
         ])->where('id', $id);
 
         // 🔒 proteksi akses
@@ -71,12 +71,11 @@ class PengajuanController extends Controller
         );
     }
 
-
     #[OA\Get(
-        path: "/api/pengajuan/my",
-        tags: ["Pengajuan"],
-        summary: "Pengajuan milik user login",
-        security: [["bearerAuth" => []]]
+        path: '/api/pengajuan/my',
+        tags: ['Pengajuan'],
+        summary: 'Pengajuan milik user login',
+        security: [['bearerAuth' => []]]
     )]
     public function my()
     {
@@ -85,7 +84,7 @@ class PengajuanController extends Controller
             'user.unit',
             'aktivasi.pengajuan',
             'barang.barang.vendor',
-            'barangLainnya'
+            'barangLainnya',
         ])
             ->where('user_id', auth()->id())
             ->latest()
@@ -97,28 +96,49 @@ class PengajuanController extends Controller
         );
     }
 
-
     #[OA\Get(
-        path: "/api/histori-pengajuan",
-        tags: ["Pengajuan"],
-        summary: "Histori pengajuan berdasarkan tahun",
-        security: [["bearerAuth" => []]]
+        path: '/api/histori-pengajuan',
+        tags: ['Pengajuan'],
+        summary: 'Histori pengajuan berdasarkan tahun',
+        security: [['bearerAuth' => []]]
     )]
     public function histori(Request $request)
     {
         $tahun = $request->tahun;
+        $aktivasi = $request->id_aktivasi;
+        $jabatan = $request->jabatan_id;
+        $bagian = $request->bagian_id;
 
         $query = DaftarPengajuan::with([
             'user.position',
             'user.unit',
-            'aktivasi.pengajuan',
+            'aktivasi',
             'barang.barang.vendor',
-            'barangLainnya'
-        ])
-            ->where('user_id', auth()->id());
+            'barangLainnya',
+        ]);
 
+        // Tahun pengajuan
         if ($tahun) {
             $query->whereYear('date', $tahun);
+        }
+
+        // Aktivasi
+        if ($aktivasi) {
+            $query->where('id_aktivasi', $aktivasi);
+        }
+
+        // Jabatan
+        if ($jabatan) {
+            $query->whereHas('user.position', function ($q) use ($jabatan) {
+                $q->where('id', $jabatan);
+            });
+        }
+
+        // Bagian / Unit
+        if ($bagian) {
+            $query->whereHas('user.unit', function ($q) use ($bagian) {
+                $q->where('unit_type_id', $bagian);
+            });
         }
 
         $data = $query->latest()->get();
@@ -127,5 +147,34 @@ class PengajuanController extends Controller
             PengajuanResource::collection($data),
             'Histori pengajuan'
         );
+    }
+
+    public function historiFilter()
+    {
+        $tahun = DaftarPengajuan::selectRaw('YEAR(date) as tahun')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        $aktivasi = AktivasiPengajuan::select(
+            'id',
+            'tipe',
+            'tahun_akademik'
+        )->get();
+
+        $jabatan = Jabatan::select('id', 'nama')->get();
+
+        $bagian = UnitType::select(
+            'id',
+            'nama',
+            'type'
+        )->get();
+
+        return ApiResponse::success([
+            'tahun' => $tahun,
+            'aktivasi' => $aktivasi,
+            'jabatan' => $jabatan,
+            'bagian' => $bagian,
+        ], 'Filter histori');
     }
 }

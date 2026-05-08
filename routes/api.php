@@ -45,7 +45,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('my-pengajuan', [PengajuanController::class, 'my']);
 
-    Route::get('histori-pengajuan', [PengajuanController::class, 'histori']);
+    Route::get('/histori', [PengajuanController::class, 'histori']);
+    Route::get('/histori/filter', [PengajuanController::class, 'historiFilter']);
+
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
