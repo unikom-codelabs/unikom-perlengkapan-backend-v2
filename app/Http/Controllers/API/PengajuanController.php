@@ -114,6 +114,7 @@ class PengajuanController extends Controller
             'user.unit',
             'aktivasi',
             'barang.barang.vendor',
+            'barang.barang.satuan',
             'barangLainnya',
         ]);
 
