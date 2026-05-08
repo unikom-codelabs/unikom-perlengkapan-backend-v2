@@ -151,23 +151,29 @@ class PengajuanController extends Controller
 
     public function historiFilter()
     {
+        // Tahun yang tersedia
         $tahun = DaftarPengajuan::selectRaw('YEAR(date) as tahun')
             ->distinct()
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
+        // Aktivasi
         $aktivasi = AktivasiPengajuan::select(
             'id',
             'tipe',
             'tahun_akademik'
         )->get();
 
-        $jabatan = Jabatan::select('id', 'nama')->get();
+        // Jabatan
+        $jabatan = Jabatan::select(
+            'id',
+            'nama'
+        )->get();
 
+        // Bagian
         $bagian = UnitType::select(
             'id',
-            'nama',
-            'type'
+            'nama'
         )->get();
 
         return ApiResponse::success([
