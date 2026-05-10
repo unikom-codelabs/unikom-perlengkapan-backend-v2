@@ -17,16 +17,16 @@ class DaftarPengajuanController extends Controller
 {
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
-        $aktivasi = AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+        $aktivasiIds = AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
             ->whereDate('aktif_selesai', '>=', now())
-            ->first();
+            ->pluck('id');
 
-        if (! $aktivasi) {
+        if ($aktivasiIds->isEmpty()) {
             return ApiResponse::error('Tidak ada periode pengajuan aktif', 422);
         }
 
         $sudahMengajukan = DaftarPengajuan::where('user_id', auth()->id())
-            ->where('id_aktivasi', $aktivasi->id)
+            ->whereIn('id_aktivasi', $aktivasiIds)
             ->exists();
 
         if ($sudahMengajukan) {
@@ -42,14 +42,17 @@ class DaftarPengajuanController extends Controller
 
         try {
 
+            $idAktivasi = $aktivasiIds->first();
+
             $pengajuan = DaftarPengajuan::create([
-                'id_aktivasi' => $aktivasi->id,
+                'id_aktivasi' => $idAktivasi,
                 'user_id' => auth()->id(),
                 'date' => now(),
                 'surat_pengajuan' => $request->hasFile('surat_pengajuan')
                     ? $request->file('surat_pengajuan')->store('surat_pengajuan', 'public')
                     : '',
             ]);
+
             foreach ($data['barang'] ?? [] as $item) {
                 if ($item['jumlah'] > 0) {
                     $pengajuan->barang()->create([
