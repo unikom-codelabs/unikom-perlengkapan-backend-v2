@@ -161,7 +161,7 @@ class PengajuanController extends Controller
         $query = DaftarPengajuan::with([
             'user.jabatan',
             'user.unit',
-            'aktivasi',
+            'aktivasi.pengajuan',
             'barang',
             'barang.barang.vendor',
             'barangLainnya',
