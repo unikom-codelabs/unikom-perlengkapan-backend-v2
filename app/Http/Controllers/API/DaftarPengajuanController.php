@@ -17,16 +17,26 @@ class DaftarPengajuanController extends Controller
 {
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
-        $aktivasiIds = AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
-            ->whereDate('aktif_selesai', '>=', now())
-            ->pluck('id');
+        $data = $request->validated();
 
-        if ($aktivasiIds->isEmpty()) {
-            return ApiResponse::error('Tidak ada periode pengajuan aktif', 422);
+        $aktivasi = AktivasiPengajuan::with('pengajuan')
+            ->whereHas('pengajuan', function ($q) use ($data) {
+                $q->where('tipe', $data['tipe']);
+            })
+            ->whereDate('aktif_mulai', '<=', now())
+            ->whereDate('aktif_selesai', '>=', now())
+            ->latest('id')
+            ->first();
+
+        if (! $aktivasi) {
+            return ApiResponse::error(
+                'Tidak ada periode pengajuan aktif',
+                422
+            );
         }
 
         $sudahMengajukan = DaftarPengajuan::where('user_id', auth()->id())
-            ->whereIn('id_aktivasi', $aktivasiIds)
+            ->where('id_aktivasi', $aktivasi->id)
             ->exists();
 
         if ($sudahMengajukan) {
@@ -36,16 +46,12 @@ class DaftarPengajuanController extends Controller
             );
         }
 
-        $data = $request->validated();
-
         DB::beginTransaction();
 
         try {
 
-            $idAktivasi = $aktivasiIds->first();
-
             $pengajuan = DaftarPengajuan::create([
-                'id_aktivasi' => $idAktivasi,
+                'id_aktivasi' => $aktivasi->id,
                 'user_id' => auth()->id(),
                 'date' => now(),
                 'surat_pengajuan' => $request->hasFile('surat_pengajuan')
@@ -85,6 +91,7 @@ class DaftarPengajuanController extends Controller
             );
 
         } catch (\Exception $e) {
+
             DB::rollBack();
 
             return ApiResponse::error($e->getMessage(), 500);
