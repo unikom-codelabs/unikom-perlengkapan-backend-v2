@@ -97,12 +97,11 @@ class PengajuanController extends Controller
     #[OA\Get(
         path: '/api/histori-pengajuan',
         tags: ['Pengajuan'],
-        summary: 'Histori pengajuan berdasarkan tahun',
+        summary: 'Histori pengajuan berdasarkan aktivasi',
         security: [['bearerAuth' => []]]
     )]
     public function histori(Request $request)
     {
-        $tahun = $request->tahun;
         $aktivasi = $request->id_aktivasi;
         $jabatan = $request->jabatan_id;
         $bagian = $request->bagian_id;
@@ -110,33 +109,27 @@ class PengajuanController extends Controller
         $query = DaftarPengajuan::with([
             'user.jabatan',
             'user.unit',
-            'aktivasi',
-            'barang',
+            'aktivasi.pengajuan',
             'barang.barang.vendor',
             'barangLainnya',
         ]);
 
-        // Tahun pengajuan
-        if ($tahun) {
-            $query->whereYear('date', $tahun);
-        }
-
-        // Aktivasi
+        // Filter Aktivasi
         if ($aktivasi) {
             $query->where('id_aktivasi', $aktivasi);
         }
 
-        // Jabatan
+        // Filter Jabatan
         if ($jabatan) {
-            $query->whereHas('user.position', function ($q) use ($jabatan) {
+            $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
                 $q->where('id', $jabatan);
             });
         }
 
-        // Bagian / Unit
+        // Filter Unit / Bagian
         if ($bagian) {
             $query->whereHas('user.unit', function ($q) use ($bagian) {
-                $q->where('unit_type_id', $bagian);
+                $q->where('id', $bagian);
             });
         }
 
