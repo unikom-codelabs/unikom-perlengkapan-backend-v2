@@ -50,7 +50,7 @@ class PengajuanResource extends JsonResource
                     'kategori' => $item->barang->kategori,
                     'unit' => $item->barang->unit,
                     'vendor' => $item->barang->vendor->nama,
-                    'jumlah_diajukan' => $item->jumlah_diajukan,
+                    'jumlah_diajukan' => $item->jumlah,
                     'jumlah_disetujui' => $item->jumlah_disetujui,
                     'status' => $item->status,
                 ];
