@@ -11,13 +11,13 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation()
-    {
-        $this->merge([
-            'barang' => json_decode($this->input('barang') ?? '[]', true),
-            'barang_lainnya' => json_decode($this->input('barang_lainnya') ?? '[]', true),
-        ]);
-    }
+    // protected function prepareForValidation()
+    // {
+    //     $this->merge([
+    //         'barang' => json_decode($this->input('barang') ?? '[]', true),
+    //         'barang_lainnya' => json_decode($this->input('barang_lainnya') ?? '[]', true),
+    //     ]);
+    // }
 
     public function rules(): array
     {
