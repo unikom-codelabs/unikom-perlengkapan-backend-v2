@@ -18,7 +18,7 @@ class BarangPengajuanResource extends JsonResource
                 return $this->barang->nama;
             }),
 
-            'jumlah' => $this->jumlah,
+            'jumlah_diajukan' => $this->jumlah,
 
             'jumlah_disetujui' => $this->jumlah_disetujui,
 
