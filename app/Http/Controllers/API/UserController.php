@@ -334,6 +334,9 @@ class UserController extends Controller
     {
         set_time_limit(0);
 
+        DB::statement('TRUNCATE TABLE users RESTART IDENTITY CASCADE');
+        DB::statement('TRUNCATE TABLE unit_types RESTART IDENTITY CASCADE');
+
         $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
         if (! $response->successful()) {
@@ -341,119 +344,28 @@ class UserController extends Controller
         }
 
         $result = $response->json();
+
         $groups = $result['data'] ?? [];
-
-        $flatten = [];
-
-        foreach ($groups as $group) {
-            foreach ($group as $item) {
-                $flatten[] = $item;
-            }
-        }
 
         $hashedPassword = bcrypt('default123');
 
-        $jabatanCache = [];
         $unitCache = [];
+        $jabatanCache = [];
 
         $usersToInsert = [];
 
-        foreach ($flatten as $item) {
-
-            $nama = $item['nama'] ?? null;
-            $nip = $item['nip'] ?? null;
-            $email = $item['email'] ?? null;
-
-            if (! $nama || ! $nip || ! $email) {
-                continue;
-            }
-
-            if (empty($item['nama_jabatan'])) {
-                continue;
-            }
-
-            $username = trim(
-                ($item['gelar_depan'] ?? '').' '.
-                $nama.' '.
-                ($item['gelar_belakang'] ?? '')
-            );
-
-            $fullJabatan = strtolower($item['nama_jabatan']);
-
-            if (str_contains($fullJabatan, 'wakil ketua')) {
-
-                $jabatanName = 'Wakil Ketua';
-
-            } elseif (str_contains($fullJabatan, 'ketua')) {
-
-                $jabatanName = 'Ketua';
-
-            } elseif (str_contains($fullJabatan, 'deputi')) {
-
-                $jabatanName = 'Deputi Wakil Rektor';
-
-            } elseif (str_contains($fullJabatan, 'wakil direktur')) {
-
-                $jabatanName = 'Wakil Direktur';
-
-            } elseif (
-                str_contains($fullJabatan, 'direktur') ||
-                str_contains($fullJabatan, 'direktorat')
-            ) {
-
-                $jabatanName = 'Direktur';
-
-            } elseif (str_contains($fullJabatan, 'wakil rektor')) {
-
-                $jabatanName = 'Wakil Rektor';
-
-            } elseif (str_contains($fullJabatan, 'rektor')) {
-
-                $jabatanName = 'Rektor';
-
-            } elseif (str_contains($fullJabatan, 'dekan')) {
-
-                $jabatanName = 'Dekan';
-
-            } elseif (str_contains($fullJabatan, 'kaprodi')) {
-
-                $jabatanName = 'Kaprodi';
-
-            } elseif (str_contains($fullJabatan, 'sekretaris')) {
-
-                $jabatanName = 'Sekretaris';
-
-            } elseif (str_contains($fullJabatan, 'upt')) {
-
-                $jabatanName = 'Kepala UPT';
-
-            } else {
-
-                continue;
-            }
+        foreach ($groups as $groupName => $items) {
 
             /*
             |--------------------------------------------------------------------------
-            | JABATAN
+            | ROOT TREE
             |--------------------------------------------------------------------------
             */
-            if (! isset($jabatanCache[$jabatanName])) {
-
-                $jabatanCache[$jabatanName] = Jabatan::firstOrCreate([
-                    'nama' => $jabatanName,
-                ])->id;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | ROOT
-            |--------------------------------------------------------------------------
-            */
-            $rootName = $jabatanName;
+            $rootName = strtoupper($groupName);
 
             if (! isset($unitCache[$rootName])) {
 
-                $unitCache[$rootName] = UnitType::firstOrCreate([
+                $unitCache[$rootName] = UnitType::create([
                     'nama' => $rootName,
                     'parent_id' => null,
                 ])->id;
@@ -461,92 +373,119 @@ class UserController extends Controller
 
             $rootId = $unitCache[$rootName];
 
-            /*
-            |--------------------------------------------------------------------------
-            | LEVEL 2
-            |--------------------------------------------------------------------------
-            */
-            $secondLevelName =
-                $item['fakultas']
-                ?? $item['unit']
-                ?? null;
+            foreach ($items as $item) {
 
-            $secondLevel = null;
-            $finalUnitId = $rootId;
+                $nama = $item['nama'] ?? null;
+                $nip = $item['nip'] ?? null;
+                $email = $item['email'] ?? null;
 
-            if ($secondLevelName) {
+                /*
+                |--------------------------------------------------------------------------
+                | JANGAN SKIP JABATAN NULL
+                |--------------------------------------------------------------------------
+                */
+                $namaJabatan = $item['nama_jabatan'] ?? '-';
 
-                $cacheKey = $rootId.'_'.$secondLevelName;
+                if (! $nama || ! $nip) {
+                    continue;
+                }
 
-                if (! isset($unitCache[$cacheKey])) {
+                $username = trim(
+                    ($item['gelar_depan'] ?? '').' '.
+                    $nama.' '.
+                    ($item['gelar_belakang'] ?? '')
+                );
 
-                    $unitCache[$cacheKey] = UnitType::firstOrCreate([
-                        'nama' => $secondLevelName,
+                /*
+                |--------------------------------------------------------------------------
+                | UNIT ASLI API
+                |--------------------------------------------------------------------------
+                */
+                $unitName =
+                    $item['unit']
+                    ?? $item['program_studi']
+                    ?? $item['fakultas']
+                    ?? 'LAINNYA';
+
+                /*
+                |--------------------------------------------------------------------------
+                | LEVEL 2
+                |--------------------------------------------------------------------------
+                */
+                $secondKey = $rootId.'_'.$unitName;
+
+                if (! isset($unitCache[$secondKey])) {
+
+                    $unitCache[$secondKey] = UnitType::create([
+                        'nama' => $unitName,
                         'parent_id' => $rootId,
                     ])->id;
                 }
 
-                $secondLevelId = $unitCache[$cacheKey];
+                $unitId = $unitCache[$secondKey];
 
-                $secondLevel = UnitType::find($secondLevelId);
+                /*
+                |--------------------------------------------------------------------------
+                | JABATAN ASLI API
+                |--------------------------------------------------------------------------
+                */
+                if (! isset($jabatanCache[$namaJabatan])) {
 
-                $finalUnitId = $secondLevelId;
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | LEVEL 3
-            |--------------------------------------------------------------------------
-            */
-            $thirdLevelName = $item['program_studi'] ?? null;
-
-            if ($thirdLevelName && $secondLevel) {
-
-                $cacheKey = $secondLevel->id.'_'.$thirdLevelName;
-
-                if (! isset($unitCache[$cacheKey])) {
-
-                    $unitCache[$cacheKey] = UnitType::firstOrCreate([
-                        'nama' => $thirdLevelName,
-                        'parent_id' => $secondLevel->id,
+                    $jabatanCache[$namaJabatan] = Jabatan::create([
+                        'nama' => $namaJabatan,
                     ])->id;
                 }
 
-                $finalUnitId = $unitCache[$cacheKey];
-            }
+                /*
+                |--------------------------------------------------------------------------
+                | INSERT SESUAI API ASLI
+                |--------------------------------------------------------------------------
+                */
+                $usersToInsert[] = [
+                    'username' => substr($username, 0, 255),
+                    'nip' => $nip,
 
-            /*
-            |--------------------------------------------------------------------------
-            | INSERT USER
-            |--------------------------------------------------------------------------
-            */
-            $usersToInsert[] = [
-                'username' => substr($username, 0, 255),
-                'nip' => $nip,
-                'email' => $email,
-                'jenis_kelamin' => 'Pria',
-                'jabatan_id' => $jabatanCache[$jabatanName],
-                'unit_id' => $finalUnitId,
-                'role' => 'user',
-                'password' => $hashedPassword,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+                    /*
+                    |--------------------------------------------------------------------------
+                    | kalau email null tetap simpan unique dummy
+                    |--------------------------------------------------------------------------
+                    */
+                    'email' => $email
+                        ?: strtolower(str_replace(' ', '', $nip.'_'.md5($namaJabatan))).'@null.unikom',
+
+                    'jenis_kelamin' => 'Pria',
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | JABATAN ASLI JANGAN DIMAPPING LAGI
+                    |--------------------------------------------------------------------------
+                    */
+                    'jabatan_id' => $jabatanCache[$namaJabatan],
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | UNIT SESUAI API
+                    |--------------------------------------------------------------------------
+                    */
+                    'unit_id' => $unitId,
+
+                    'role' => 'user',
+                    'password' => $hashedPassword,
+
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | INSERT TANPA NIMPA DATA ORANG LAIN
+        |--------------------------------------------------------------------------
+        */
         foreach (array_chunk($usersToInsert, 500) as $chunk) {
 
-            DB::table('users')->upsert(
-                $chunk,
-                ['email'],
-                [
-                    'username',
-                    'nip',
-                    'jabatan_id',
-                    'unit_id',
-                    'updated_at',
-                ]
-            );
+            DB::table('users')->insert($chunk);
         }
 
         return ApiResponse::success([
