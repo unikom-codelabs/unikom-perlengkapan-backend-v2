@@ -334,8 +334,12 @@ class UserController extends Controller
     {
         set_time_limit(0);
 
-        DB::statement('TRUNCATE TABLE users RESTART IDENTITY CASCADE');
-        DB::statement('TRUNCATE TABLE unit_types RESTART IDENTITY CASCADE');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+        DB::table('users')->truncate();
+        DB::table('unit_types')->truncate();
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $response = Http::get('https://api.unikom.ac.id/v1/structural');
 
