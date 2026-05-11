@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nip')->nullable();
             $table->string('username');
-            $table->string('email')->unique();
+            $table->string('email');
             $table->string('password');
             $table->enum('jenis_kelamin', ['Pria', 'Wanita']);
             $table->string('foto')->nullable();
