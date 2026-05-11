@@ -535,7 +535,18 @@ class UserController extends Controller
         }
 
         foreach (array_chunk($usersToInsert, 500) as $chunk) {
-            DB::table('users')->insert($chunk);
+
+            DB::table('users')->upsert(
+                $chunk,
+                ['email'],
+                [
+                    'username',
+                    'nip',
+                    'jabatan_id',
+                    'unit_id',
+                    'updated_at',
+                ]
+            );
         }
 
         return ApiResponse::success([
