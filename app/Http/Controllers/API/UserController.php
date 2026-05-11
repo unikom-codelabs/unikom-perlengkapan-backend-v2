@@ -362,8 +362,9 @@ class UserController extends Controller
 
             $nama = $item['nama'] ?? null;
             $nip = $item['nip'] ?? null;
+            $email = $item['email'] ?? null;
 
-            if (! $nama || ! $nip) {
+            if (! $nama || ! $nip || ! $email) {
                 continue;
             }
 
@@ -377,78 +378,155 @@ class UserController extends Controller
                 ($item['gelar_belakang'] ?? '')
             );
 
-            $email = ($nip.'_'.md5($item['nama_jabatan'])).'@unikom.ac.id';
-
             $fullJabatan = strtolower($item['nama_jabatan']);
 
             if (str_contains($fullJabatan, 'wakil ketua')) {
+
                 $jabatanName = 'Wakil Ketua';
 
             } elseif (str_contains($fullJabatan, 'ketua')) {
+
                 $jabatanName = 'Ketua';
 
             } elseif (str_contains($fullJabatan, 'deputi')) {
+
                 $jabatanName = 'Deputi Wakil Rektor';
 
             } elseif (str_contains($fullJabatan, 'wakil direktur')) {
+
                 $jabatanName = 'Wakil Direktur';
 
             } elseif (
                 str_contains($fullJabatan, 'direktur') ||
                 str_contains($fullJabatan, 'direktorat')
             ) {
+
                 $jabatanName = 'Direktur';
 
             } elseif (str_contains($fullJabatan, 'wakil rektor')) {
+
                 $jabatanName = 'Wakil Rektor';
 
             } elseif (str_contains($fullJabatan, 'rektor')) {
+
                 $jabatanName = 'Rektor';
 
             } elseif (str_contains($fullJabatan, 'dekan')) {
+
                 $jabatanName = 'Dekan';
 
             } elseif (str_contains($fullJabatan, 'kaprodi')) {
+
                 $jabatanName = 'Kaprodi';
 
             } elseif (str_contains($fullJabatan, 'sekretaris')) {
+
                 $jabatanName = 'Sekretaris';
 
             } elseif (str_contains($fullJabatan, 'upt')) {
+
                 $jabatanName = 'Kepala UPT';
 
             } else {
-                continue; 
+
+                continue;
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | JABATAN
+            |--------------------------------------------------------------------------
+            */
             if (! isset($jabatanCache[$jabatanName])) {
+
                 $jabatanCache[$jabatanName] = Jabatan::firstOrCreate([
                     'nama' => $jabatanName,
                 ])->id;
             }
 
-            $unitName = $item['fakultas']
-                ?? $item['unit']
-                ?? $item['program_studi']
-                ?? null;
+            /*
+            |--------------------------------------------------------------------------
+            | ROOT
+            |--------------------------------------------------------------------------
+            */
+            $rootName = $jabatanName;
 
-            if (! $unitName) {
-                continue;
-            }
+            if (! isset($unitCache[$rootName])) {
 
-            if (! isset($unitCache[$unitName])) {
-                $unitCache[$unitName] = UnitType::firstOrCreate([
-                    'nama' => $unitName,
+                $unitCache[$rootName] = UnitType::firstOrCreate([
+                    'nama' => $rootName,
+                    'parent_id' => null,
                 ])->id;
             }
 
+            $rootId = $unitCache[$rootName];
+
+            /*
+            |--------------------------------------------------------------------------
+            | LEVEL 2
+            |--------------------------------------------------------------------------
+            */
+            $secondLevelName =
+                $item['fakultas']
+                ?? $item['unit']
+                ?? null;
+
+            $secondLevel = null;
+            $finalUnitId = $rootId;
+
+            if ($secondLevelName) {
+
+                $cacheKey = $rootId.'_'.$secondLevelName;
+
+                if (! isset($unitCache[$cacheKey])) {
+
+                    $unitCache[$cacheKey] = UnitType::firstOrCreate([
+                        'nama' => $secondLevelName,
+                        'parent_id' => $rootId,
+                    ])->id;
+                }
+
+                $secondLevelId = $unitCache[$cacheKey];
+
+                $secondLevel = UnitType::find($secondLevelId);
+
+                $finalUnitId = $secondLevelId;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | LEVEL 3
+            |--------------------------------------------------------------------------
+            */
+            $thirdLevelName = $item['program_studi'] ?? null;
+
+            if ($thirdLevelName && $secondLevel) {
+
+                $cacheKey = $secondLevel->id.'_'.$thirdLevelName;
+
+                if (! isset($unitCache[$cacheKey])) {
+
+                    $unitCache[$cacheKey] = UnitType::firstOrCreate([
+                        'nama' => $thirdLevelName,
+                        'parent_id' => $secondLevel->id,
+                    ])->id;
+                }
+
+                $finalUnitId = $unitCache[$cacheKey];
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT USER
+            |--------------------------------------------------------------------------
+            */
             $usersToInsert[] = [
                 'username' => substr($username, 0, 255),
                 'nip' => $nip,
                 'email' => $email,
                 'jenis_kelamin' => 'Pria',
                 'jabatan_id' => $jabatanCache[$jabatanName],
-                'unit_id' => $unitCache[$unitName],
+                'unit_id' => $finalUnitId,
                 'role' => 'user',
                 'password' => $hashedPassword,
                 'created_at' => now(),
@@ -467,36 +545,36 @@ class UserController extends Controller
 
     public function dropdown()
     {
-        $data = User::with(['jabatan', 'unit'])->get();
+        $units = UnitType::with('childrenRecursive')
+            ->whereNull('parent_id')
+            ->get();
 
-        $grouped = [];
+        return ApiResponse::success(
+            $this->formatTree($units)
+        );
+    }
 
-        foreach ($data as $user) {
-            if (! $user->jabatan || ! $user->unit) {
-                continue;
-            }
-
-            $jabatan = $user->jabatan->nama;
-            $unit = $user->unit->nama;
-
-            if (! isset($grouped[$jabatan])) {
-                $grouped[$jabatan] = [];
-            }
-
-            if (! in_array($unit, $grouped[$jabatan])) {
-                $grouped[$jabatan][] = $unit;
-            }
-        }
-
+    private function formatTree($units)
+    {
         $result = [];
 
-        foreach ($grouped as $jabatan => $units) {
-            $result[] = [
-                'nama' => $jabatan,
-                'units' => array_values($units),
+        foreach ($units as $unit) {
+
+            $item = [
+                'name' => $unit->nama,
+                'unit_id' => $unit->id,
             ];
+
+            if ($unit->childrenRecursive->count()) {
+
+                $item['children'] = $this->formatTree(
+                    $unit->childrenRecursive
+                );
+            }
+
+            $result[] = $item;
         }
 
-        return ApiResponse::success($result);
+        return $result;
     }
 }

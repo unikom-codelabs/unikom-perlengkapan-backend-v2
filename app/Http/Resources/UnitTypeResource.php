@@ -14,7 +14,7 @@ class UnitTypeResource extends JsonResource
             'unit_id' => $this->id,
 
             'children' => UnitTypeResource::collection(
-                $this->whenLoaded('children')
+                $this->whenLoaded('childrenRecursive')
             )
         ];
     }
