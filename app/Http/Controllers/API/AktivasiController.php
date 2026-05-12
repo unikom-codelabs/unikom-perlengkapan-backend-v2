@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AktivasiPengajuan\StoreAktivasiPengajuanRequest;
 use App\Http\Requests\AktivasiPengajuan\UpdateAktivasiPengajuanRequest;
 use App\Http\Resources\AktivasiPengajuanResource;
 use App\Models\AktivasiPengajuan;
+use App\Models\DaftarPengajuan;
+use App\Models\User;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -273,6 +276,50 @@ class AktivasiController extends Controller
 
                 $aktivasiPengajuan->load('pengajuan')
             ),
+        ]);
+    }
+
+    public function summary($id)
+    {
+        $aktivasi = AktivasiPengajuan::with('pengajuan')
+            ->findOrFail($id);
+
+        $totalPengaju = User::count();
+
+        $sudahPengajuan = DaftarPengajuan::where(
+            'id_aktivasi',
+            $id
+        )
+            ->distinct('user_id')
+            ->count();
+
+        $units = User::with(['unit', 'jabatan'])
+            ->get()
+            ->map(function ($user) use ($id) {
+
+                $exists = DaftarPengajuan::where(
+                    'id_aktivasi',
+                    $id
+                )
+                    ->where('user_id', $user->id)
+                    ->exists();
+
+                return [
+                    'nama' => $user->unit?->nama,
+                    'bagian' => $user->jabatan?->nama,
+                    'status' => $exists
+                        ? 'Sudah Pengajuan'
+                        : 'Belum Pengajuan',
+                ];
+            });
+
+        return ApiResponse::success([
+            'aktivasi' => $aktivasi,
+            'statistik' => [
+                'jumlah_pengajuan_masuk' => $sudahPengajuan,
+                'total_pengaju' => $totalPengaju,
+            ],
+            'detail_pengajuan' => $units,
         ]);
     }
 }

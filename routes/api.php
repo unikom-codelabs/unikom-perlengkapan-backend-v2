@@ -62,6 +62,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     );
 
     Route::get(
+        '/aktivasi-pengajuan/{id}/summary',
+        [AktivasiController::class, 'summary']
+    );
+
+    Route::get(
         'pengajuan',
         [TipePengajuanController::class, 'index']
     );
