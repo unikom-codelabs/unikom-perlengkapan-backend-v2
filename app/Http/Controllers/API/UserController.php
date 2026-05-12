@@ -28,12 +28,24 @@ class UserController extends Controller
             ),
         ]
     )]
-    public function index()
+    public function index(Request $request)
     {
-        $data = User::with([
+        $query = User::with([
             'jabatan',
             'unit',
-        ])->paginate(10);
+        ]);
+
+        if ($request->search) {
+
+            $query->where(function ($q) use ($request) {
+
+                $q->where('username', 'like', "%{$request->search}%")
+                    ->orWhere('email', 'like', "%{$request->search}%")
+                    ->orWhere('nip', 'like', "%{$request->search}%");
+            });
+        }
+
+        $data = $query->paginate(10);
 
         return ApiResponse::success($data);
     }
