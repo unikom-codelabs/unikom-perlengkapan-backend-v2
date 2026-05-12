@@ -10,6 +10,7 @@ use App\Http\Requests\DaftarPengajuan\UpdateDaftarPengajuanRequest;
 use App\Http\Resources\DaftarPengajuanResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
@@ -375,21 +376,11 @@ class DaftarPengajuanController extends Controller
             'barangLainnya',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER AKTIVASI
-        |--------------------------------------------------------------------------
-        */
         if ($aktivasi) {
 
             $query->where('id_aktivasi', $aktivasi);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER JABATAN
-        |--------------------------------------------------------------------------
-        */
         if ($jabatan) {
 
             $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
@@ -399,11 +390,6 @@ class DaftarPengajuanController extends Controller
             });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER BAGIAN / UNIT
-        |--------------------------------------------------------------------------
-        */
         if ($bagian) {
 
             $query->whereHas('user.unit', function ($q) use ($bagian) {
@@ -413,11 +399,6 @@ class DaftarPengajuanController extends Controller
             });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER TIPE PENGAJUAN
-        |--------------------------------------------------------------------------
-        */
         if ($tipe) {
 
             $query->whereHas('aktivasi.pengajuan', function ($q) use ($tipe) {
@@ -427,11 +408,6 @@ class DaftarPengajuanController extends Controller
             });
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | FILTER STATUS
-        |--------------------------------------------------------------------------
-        */
         if ($status !== null) {
 
             $query->where(function ($q) use ($status) {
