@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\AktivasiPengajuan\StoreAktivasiPengajuanRequest;
 use App\Http\Requests\AktivasiPengajuan\UpdateAktivasiPengajuanRequest;
 use App\Http\Resources\AktivasiPengajuanResource;
+use App\Http\Resources\BarangPengajuanLainnyaResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
 use App\Models\User;
