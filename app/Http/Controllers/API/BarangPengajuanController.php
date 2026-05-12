@@ -4,16 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BarangPengajuan\StoreBarangPengajuanRequest;
-use App\Http\Requests\BarangPengajuan\UpdateBarangPengajuanRequest;
 use App\Http\Resources\BarangPengajuanResource;
 use App\Models\BarangPengajuan;
 use Illuminate\Http\Request;
-use OpenApi\Attributes as OA;
 
 class BarangPengajuanController extends Controller
 {
-    
     public function approve(Request $request, BarangPengajuan $barangPengajuan)
     {
         $validated = $request->validate([
@@ -24,7 +20,11 @@ class BarangPengajuanController extends Controller
                 'min:0',
             ],
 
-            'status' => ['required', 'boolean'],
+            'status' => [
+                'required',
+                'integer',
+                'in:0,1,2',
+            ],
         ]);
 
         $barangPengajuan->update([
