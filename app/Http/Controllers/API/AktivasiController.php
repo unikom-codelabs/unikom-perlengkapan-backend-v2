@@ -293,7 +293,10 @@ class AktivasiController extends Controller
             ->distinct('user_id')
             ->count();
 
-        $units = User::with(['unit', 'jabatan'])
+        $units = User::with([
+            'unit',
+            'jabatan',
+        ])
             ->get()
             ->map(function ($user) use ($id) {
 
@@ -306,9 +309,13 @@ class AktivasiController extends Controller
                     ->first();
 
                 return [
-                    'nama' => $user->name,
-                    'unit' => $user->unit?->nama,
-                    'jabatan' => $user->jabatan?->nama,
+
+                    // FIX
+                    'nama' => $user->username,
+
+                    'unit' => $user->unit?->nama ?? '-',
+
+                    'jabatan' => $user->jabatan?->nama ?? '-',
 
                     'status' => $pengajuan
                         ? 'Sudah Pengajuan'
@@ -318,15 +325,26 @@ class AktivasiController extends Controller
                         ? $pengajuan->barang->map(function ($item) {
 
                             return [
-                                'nama_barang' => $item->barang?->nama_barang,
-                                'qty' => $item->qty,
-                                'vendor' => $item->barang?->vendor?->nama,
+
+                                // FIX
+                                'nama_barang' => $item->barang?->nama_barang ?? '-',
+
+                                // FIX
+                                'qty' => $item->jumlah ?? 0,
+
+                                'jumlah_disetujui' => $item->jumlah_disetujui ?? 0,
+
+                                'status' => $item->status ?? '-',
+
+                                'vendor' => $item->barang?->vendor?->nama ?? '-',
                             ];
                         })
                         : [],
 
                     'barang_lainnya' => $pengajuan
-                        ? $pengajuan->barangLainnya
+                        ? BarangPengajuanLainnyaResource::collection(
+                            $pengajuan->barangLainnya
+                        )
                         : [],
                 ];
             });
