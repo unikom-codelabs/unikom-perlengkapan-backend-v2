@@ -352,4 +352,127 @@ class DaftarPengajuanController extends Controller
 
         return ApiResponse::deleted();
     }
+
+    #[OA\Get(
+        path: '/api/admin/daftar-pengajuan',
+        tags: ['Admin Daftar Pengajuan'],
+        summary: 'List semua pengajuan untuk admin',
+        security: [['bearerAuth' => []]],
+        parameters: [
+
+            new OA\Parameter(
+                name: 'status',
+                in: 'query',
+                required: false,
+                description: 'Filter status pengajuan',
+                schema: new OA\Schema(
+                    type: 'string',
+                    enum: ['pending', 'approved', 'rejected']
+                )
+            ),
+
+            new OA\Parameter(
+                name: 'tipe',
+                in: 'query',
+                required: false,
+                description: 'Filter tipe pengajuan',
+                schema: new OA\Schema(
+                    type: 'string',
+                    enum: ['tahunan', 'kelas', 'ujian']
+                )
+            ),
+
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'List pengajuan admin berhasil diambil'
+            ),
+        ]
+    )]
+    public function adminIndex()
+    {
+        $query = DaftarPengajuan::with([
+            'user.jabatan',
+            'aktivasi.pengajuan',
+            'barang.barang',
+            'barangLainnya',
+        ])->latest();
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER TIPE
+        |--------------------------------------------------------------------------
+        */
+        if (request()->filled('tipe')) {
+
+            $query->whereHas('aktivasi.pengajuan', function ($q) {
+
+                $q->where('tipe', request('tipe'));
+
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | FILTER STATUS
+        |--------------------------------------------------------------------------
+        */
+        if (request()->filled('status')) {
+
+            if (request('status') === 'approved') {
+
+                $query->where(function ($q) {
+
+                    $q->whereHas('barang', function ($sub) {
+
+                        $sub->where('status', true);
+
+                    })->orWhereHas('barangLainnya', function ($sub) {
+
+                        $sub->where('status', true);
+
+                    });
+
+                });
+            }
+
+            if (request('status') === 'rejected') {
+
+                $query->where(function ($q) {
+
+                    $q->whereHas('barang', function ($sub) {
+
+                        $sub->where('status', false);
+
+                    })->orWhereHas('barangLainnya', function ($sub) {
+
+                        $sub->where('status', false);
+
+                    });
+
+                });
+            }
+
+            if (request('status') === 'pending') {
+
+                $query->where(function ($q) {
+
+                    $q->whereDoesntHave('barang')
+                        ->orWhereDoesntHave('barangLainnya');
+
+                });
+            }
+        }
+
+        return ApiResponse::success(
+
+            DaftarPengajuanResource::collection(
+
+                $query->get()
+
+            )
+
+        );
+    }
 }
