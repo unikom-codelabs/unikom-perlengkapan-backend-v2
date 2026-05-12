@@ -297,28 +297,48 @@ class AktivasiController extends Controller
             ->get()
             ->map(function ($user) use ($id) {
 
-                $exists = DaftarPengajuan::where(
-                    'id_aktivasi',
-                    $id
-                )
+                $pengajuan = DaftarPengajuan::with([
+                    'barang.barang.vendor',
+                    'barangLainnya',
+                ])
+                    ->where('id_aktivasi', $id)
                     ->where('user_id', $user->id)
-                    ->exists();
+                    ->first();
 
                 return [
-                    'nama' => $user->unit?->nama,
-                    'bagian' => $user->jabatan?->nama,
-                    'status' => $exists
+                    'nama' => $user->name,
+                    'unit' => $user->unit?->nama,
+                    'jabatan' => $user->jabatan?->nama,
+
+                    'status' => $pengajuan
                         ? 'Sudah Pengajuan'
                         : 'Belum Pengajuan',
+
+                    'barang' => $pengajuan
+                        ? $pengajuan->barang->map(function ($item) {
+
+                            return [
+                                'nama_barang' => $item->barang?->nama_barang,
+                                'qty' => $item->qty,
+                                'vendor' => $item->barang?->vendor?->nama,
+                            ];
+                        })
+                        : [],
+
+                    'barang_lainnya' => $pengajuan
+                        ? $pengajuan->barangLainnya
+                        : [],
                 ];
             });
 
         return ApiResponse::success([
             'aktivasi' => $aktivasi,
+
             'statistik' => [
                 'jumlah_pengajuan_masuk' => $sudahPengajuan,
                 'total_pengaju' => $totalPengaju,
             ],
+
             'detail_pengajuan' => $units,
         ]);
     }
