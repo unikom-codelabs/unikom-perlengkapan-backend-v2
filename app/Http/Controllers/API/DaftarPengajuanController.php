@@ -19,6 +19,31 @@ class DaftarPengajuanController extends Controller
     {
         $data = $request->validated();
 
+        $user = auth()->user()->load('jabatan');
+
+        $jabatan = strtolower($user->jabatan->nama ?? '');
+
+        $allowedTipe = ['tahunan'];
+
+        if (
+            str_contains($jabatan, 'dekan') ||
+            str_contains($jabatan, 'kaprodi')
+        ) {
+            $allowedTipe = [
+                'tahunan',
+                'kelas',
+                'ujian',
+            ];
+        }
+
+        if (! in_array($data['tipe'], $allowedTipe)) {
+
+            return ApiResponse::error(
+                'Anda tidak memiliki akses untuk tipe pengajuan ini',
+                403
+            );
+        }
+
         $aktivasi = AktivasiPengajuan::with('pengajuan')
             ->whereHas('pengajuan', function ($q) use ($data) {
                 $q->where('tipe', $data['tipe']);
@@ -29,6 +54,7 @@ class DaftarPengajuanController extends Controller
             ->first();
 
         if (! $aktivasi) {
+
             return ApiResponse::error(
                 'Tidak ada periode pengajuan aktif',
                 422
@@ -40,6 +66,7 @@ class DaftarPengajuanController extends Controller
             ->exists();
 
         if ($sudahMengajukan) {
+
             return ApiResponse::error(
                 'Anda sudah melakukan pengajuan pada periode ini',
                 422
@@ -49,18 +76,20 @@ class DaftarPengajuanController extends Controller
         DB::beginTransaction();
 
         try {
-
             $pengajuan = DaftarPengajuan::create([
                 'id_aktivasi' => $aktivasi->id,
                 'user_id' => auth()->id(),
                 'date' => now(),
                 'surat_pengajuan' => $request->hasFile('surat_pengajuan')
-                    ? $request->file('surat_pengajuan')->store('surat_pengajuan', 'public')
+                    ? $request->file('surat_pengajuan')
+                        ->store('surat_pengajuan', 'public')
                     : '',
             ]);
 
             foreach ($data['barang'] ?? [] as $item) {
+
                 if ($item['jumlah'] > 0) {
+
                     $pengajuan->barang()->create([
                         'id_barang' => $item['id_barang'],
                         'jumlah' => $item['jumlah'],
@@ -71,6 +100,7 @@ class DaftarPengajuanController extends Controller
             }
 
             foreach ($data['barang_lainnya'] ?? [] as $item) {
+
                 $pengajuan->barangLainnya()->create([
                     'nama' => $item['nama'],
                     'jumlah' => $item['jumlah'],
@@ -85,7 +115,10 @@ class DaftarPengajuanController extends Controller
 
             return ApiResponse::success(
                 new DaftarPengajuanResource(
-                    $pengajuan->load('barang.barang', 'barangLainnya')
+                    $pengajuan->load(
+                        'barang.barang',
+                        'barangLainnya'
+                    )
                 ),
                 'Pengajuan berhasil dibuat'
             );
@@ -94,7 +127,10 @@ class DaftarPengajuanController extends Controller
 
             DB::rollBack();
 
-            return ApiResponse::error($e->getMessage(), 500);
+            return ApiResponse::error(
+                $e->getMessage(),
+                500
+            );
         }
     }
 
