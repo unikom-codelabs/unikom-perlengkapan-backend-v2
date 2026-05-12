@@ -328,7 +328,7 @@ class AktivasiController extends Controller
                             return [
 
                                 // FIX
-                                'nama_barang' => $item->barang?->nama_barang ?? '-',
+                                'nama_barang' => $item->barang?->nama ?? '-',
 
                                 // FIX
                                 'qty' => $item->jumlah ?? 0,
