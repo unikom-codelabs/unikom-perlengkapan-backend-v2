@@ -15,8 +15,9 @@ class CetakBerkasController extends Controller
         $aktivasi = $request->id_aktivasi;
 
         $query = DaftarPengajuan::with([
-            'aktivasi.pengajuan',
+            'aktivasi',
             'barang.barang.vendor',
+            'barangLainnya',
         ]);
 
         if ($tahun) {
@@ -55,10 +56,25 @@ class CetakBerkasController extends Controller
                     'vendor'      => $barang->barang->vendor->nama ?? '-',
                 ]);
             }
+
+            foreach ($data->barangLainnya as $barangLainnya) {
+
+                $items->push([
+                    'nama_barang' => $barangLainnya->nama ?? '-',
+                    'satuan'      => $barangLainnya->satuan ?? '-',
+                    'jumlah'      => $barangLainnya->jumlah ?? 0,
+                    'harga'       => 0,
+                    'vendor'      => '-',
+                ]);
+            }
         }
 
         $grouped = $items
-            ->groupBy('nama_barang')
+            ->groupBy(function ($item) {
+
+                return strtolower($item['nama_barang']);
+
+            })
             ->map(function ($rows) {
 
                 $harga = $rows->first()['harga'];
