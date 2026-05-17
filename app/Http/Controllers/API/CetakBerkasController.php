@@ -61,29 +61,39 @@ class CetakBerkasController extends Controller
             ->latest()
             ->get();
 
-        $items = collect();
+        $barangPengajuan = collect();
 
+        $barangPengajuanLainnya = collect();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Barang Pengajuan
+        |--------------------------------------------------------------------------
+        */
         foreach ($pengajuan as $data) {
 
             foreach ($data->barang as $barang) {
 
-                $harga = $barang->barang->harga ?? 0;
-                $jumlah = $barang->jumlah ?? 0;
-
-                $items->push([
+                $barangPengajuan->push([
                     'nama_barang' => $barang->barang->nama ?? '-',
                     'satuan' => $barang->barang->satuan ?? '-',
-                    'jumlah' => $jumlah,
-                    'harga' => $harga,
-                    'subtotal' => $jumlah * $harga,
+                    'jumlah' => $barang->jumlah ?? 0,
+                    'harga' => $barang->barang->harga ?? 0,
+                    'subtotal' => ($barang->jumlah ?? 0) * ($barang->barang->harga ?? 0),
                     'vendor' => $barang->barang->vendor->nama ?? '-',
                 ]);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Barang Pengajuan Lainnya
+            |--------------------------------------------------------------------------
+            */
             foreach ($data->barangLainnya as $barangLainnya) {
 
-                $items->push([
+                $barangPengajuanLainnya->push([
                     'nama_barang' => $barangLainnya->nama ?? '-',
+                    'kategori' => $barangLainnya->kategori ?? '-',
                     'satuan' => $barangLainnya->satuan ?? '-',
                     'jumlah' => $barangLainnya->jumlah ?? 0,
                     'harga' => 0,
@@ -117,11 +127,15 @@ class CetakBerkasController extends Controller
 
         return ApiResponse::success([
             'tahun' => $tahun,
-            'tipe' => $tipe,
-            'kategori_atk' => $kategoriAtk,
-            'aktivasi' => $pengajuan->first()?->aktivasi,
-            'total_harga' => $grouped->sum('subtotal'),
-            'items' => $grouped,
+            'id_aktivasi' => $aktivasi,
+
+            'total_harga' => $barangPengajuan->sum('subtotal') +
+
+                $barangPengajuanLainnya->sum('subtotal'),
+
+            'barang_pengajuan' => $barangPengajuan,
+
+            'barang_pengajuan_lainnya' => $barangPengajuanLainnya,
         ]);
     }
 }
