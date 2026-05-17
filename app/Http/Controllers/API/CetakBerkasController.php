@@ -19,25 +19,15 @@ class CetakBerkasController extends Controller
         $tahun = $request->tahun;
         $aktivasi = $request->id_aktivasi;
 
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
+        $pengajuan = DaftarPengajuan::with([
             'aktivasi',
             'barang.barang.vendor',
             'barangLainnya',
-        ]);
-
-        if ($aktivasi) {
-            $query->where('id_aktivasi', $aktivasi);
-        }
-
-        if ($tahun) {
-            $query->whereHas('aktivasi', function ($q) use ($tahun) {
-                $q->where('tahun_akademik', $tahun);
-            });
-        }
-
-        $pengajuan = $query->latest()->get();
+        ])
+            ->where('id_aktivasi', $aktivasi)
+            ->whereYear('created_at', $tahun)
+            ->latest()
+            ->get();
 
         $items = collect();
 
@@ -73,9 +63,7 @@ class CetakBerkasController extends Controller
 
         $grouped = $items
             ->groupBy(function ($item) {
-
                 return strtolower(trim($item['nama_barang']));
-
             })
             ->map(function ($rows) {
 
@@ -97,8 +85,7 @@ class CetakBerkasController extends Controller
             'tahun' => $tahun,
             'id_aktivasi' => $aktivasi,
             'total_harga' => $grouped->sum('subtotal'),
-            'total_item' => $grouped->count(),
             'items' => $grouped,
-        ], 'Data cetak berkas berhasil diambil');
+        ]);
     }
 }
