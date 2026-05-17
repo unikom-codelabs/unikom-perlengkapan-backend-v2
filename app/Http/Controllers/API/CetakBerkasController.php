@@ -11,39 +11,46 @@ class CetakBerkasController extends Controller
 {
     public function index(Request $request)
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi Filter
+        |--------------------------------------------------------------------------
+        */
+        $request->validate([
+            'tahun'       => 'required',
+            'id_aktivasi' => 'required|integer',
+        ]);
+
         $tahun = $request->tahun;
         $aktivasi = $request->id_aktivasi;
 
-        $query = DaftarPengajuan::with([
+        /*
+        |--------------------------------------------------------------------------
+        | Query Pengajuan
+        |--------------------------------------------------------------------------
+        */
+        $pengajuan = DaftarPengajuan::with([
             'aktivasi',
             'barang.barang.vendor',
             'barangLainnya',
-        ]);
+        ])
+        ->where('id_aktivasi', $aktivasi)
 
-        if ($tahun) {
+        ->whereHas('aktivasi', function ($q) use ($tahun) {
 
-            $query->whereHas(
-                'aktivasi',
-                function ($q) use ($tahun) {
+            $q->where('tahun_akademik', $tahun);
 
-                    $q->where('tahun_akademik', $tahun);
+        })
 
-                }
-            );
-        }
-
-        if ($aktivasi) {
-
-            $query->where(
-                'id_aktivasi',
-                $aktivasi
-            );
-        }
-
-        $pengajuan = $query->get();
+        ->get();
 
         $items = collect();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Barang Utama
+        |--------------------------------------------------------------------------
+        */
         foreach ($pengajuan as $data) {
 
             foreach ($data->barang as $barang) {
@@ -57,6 +64,11 @@ class CetakBerkasController extends Controller
                 ]);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Barang Lainnya
+            |--------------------------------------------------------------------------
+            */
             foreach ($data->barangLainnya as $barangLainnya) {
 
                 $items->push([
@@ -69,6 +81,11 @@ class CetakBerkasController extends Controller
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Group Barang
+        |--------------------------------------------------------------------------
+        */
         $grouped = $items
             ->groupBy(function ($item) {
 
@@ -93,6 +110,8 @@ class CetakBerkasController extends Controller
             ->values();
 
         return ApiResponse::success([
+            'tahun'       => $tahun,
+            'id_aktivasi' => $aktivasi,
             'total_harga' => $grouped->sum('subtotal'),
             'items'       => $grouped,
         ]);
