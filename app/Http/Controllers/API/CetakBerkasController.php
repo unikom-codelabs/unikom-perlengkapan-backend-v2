@@ -25,6 +25,7 @@ class CetakBerkasController extends Controller
 
         $query = DaftarPengajuan::with([
             'aktivasi',
+            'aktivasi.pengajuan',
             'barang.barang.vendor',
             'barangLainnya',
         ])
@@ -51,11 +52,8 @@ class CetakBerkasController extends Controller
         |--------------------------------------------------------------------------
         */
         if ($kategoriAtk) {
-
-            $query->whereHas('aktivasi', function ($q) use ($kategoriAtk) {
-
-                $q->where('kategori_atk', $kategoriAtk);
-
+            $query->whereHas('aktivasi.pengajuan', function ($q) use ($kategoriAtk) {
+                $q->where('tipe', $kategoriAtk);
             });
         }
 
