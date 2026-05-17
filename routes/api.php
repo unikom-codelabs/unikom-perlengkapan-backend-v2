@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BarangController;
 use App\Http\Controllers\API\BarangPengajuanController;
 use App\Http\Controllers\API\BarangPengajuanLainnyaController;
+use App\Http\Controllers\API\CetakBerkasController;
 use App\Http\Controllers\API\DaftarPengajuanController;
 use App\Http\Controllers\API\JabatanController;
 use App\Http\Controllers\API\PengajuanController;
