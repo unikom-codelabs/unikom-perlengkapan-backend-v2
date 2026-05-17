@@ -29,20 +29,18 @@ class CetakBerkasController extends Controller
         | Query Pengajuan
         |--------------------------------------------------------------------------
         */
-        $pengajuan = DaftarPengajuan::with([
-            'aktivasi',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ])
-        ->where('id_aktivasi', $aktivasi)
-
-        ->whereHas('aktivasi', function ($q) use ($tahun) {
-
-            $q->where('tahun_akademik', $tahun);
-
-        })
-
-        ->get();
+        $pengajuan = DaftarPengajuan::query()
+            ->withoutGlobalScopes()
+            ->with([
+                'aktivasi',
+                'barang.barang.vendor',
+                'barangLainnya',
+            ])
+            ->where('id_aktivasi', $aktivasi)
+            ->whereHas('aktivasi', function ($q) use ($tahun) {
+                $q->where('tahun_akademik', $tahun);
+            })
+            ->get();
 
         $items = collect();
 
