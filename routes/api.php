@@ -95,4 +95,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         'admin/barang-pengajuan-lainnya/{barangPengajuanLainnya}/approve',
         [BarangPengajuanLainnyaController::class, 'approve']
     );
+
+    Route::get(
+        '/admin/cetak-berkas',
+        [CetakBerkasController::class, 'index']
+    );
 });
