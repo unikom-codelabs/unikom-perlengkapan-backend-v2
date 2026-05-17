@@ -69,7 +69,7 @@ class CetakBerkasController extends Controller
 
                 $barangPengajuan->push([
                     'nama_barang' => $barang->barang->nama ?? '-',
-                    'satuan'      => $barang->barang->satuan ?? '-',
+                    'unit' => $barang->barang->unit ?? '-',
                     'jumlah'      => $barang->jumlah ?? 0,
                     'harga'       => $barang->barang->harga ?? 0,
                     'subtotal'    => ($barang->jumlah ?? 0) * ($barang->barang->harga ?? 0),
