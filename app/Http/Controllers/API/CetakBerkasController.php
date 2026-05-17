@@ -82,10 +82,10 @@ class CetakBerkasController extends Controller
             ->values();
 
         return ApiResponse::success([
-            'tahun' => $tahun,
-            'id_aktivasi' => $aktivasi,
+            'tahun'       => $tahun,
+            'aktivasi'    => $pengajuan->first()?->aktivasi,
             'total_harga' => $grouped->sum('subtotal'),
-            'items' => $grouped,
+            'items'       => $grouped,
         ]);
     }
 }
