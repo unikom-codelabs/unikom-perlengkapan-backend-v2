@@ -14,18 +14,31 @@ class CetakBerkasController extends Controller
         $request->validate([
             'tahun' => 'required',
             'id_aktivasi' => 'required|integer',
+            'tipe' => 'nullable|in:rutin,nonrutin',
         ]);
 
         $tahun = $request->tahun;
         $aktivasi = $request->id_aktivasi;
+        $tipe = $request->tipe;
 
-        $pengajuan = DaftarPengajuan::with([
+        $query = DaftarPengajuan::with([
             'aktivasi',
             'barang.barang.vendor',
             'barangLainnya',
         ])
             ->where('id_aktivasi', $aktivasi)
-            ->whereYear('created_at', $tahun)
+            ->whereYear('created_at', $tahun);
+
+        if ($tipe) {
+
+            $query->whereHas('aktivasi', function ($q) use ($tipe) {
+
+                $q->where('tipe', $tipe);
+
+            });
+        }
+
+        $pengajuan = $query
             ->latest()
             ->get();
 
@@ -63,7 +76,9 @@ class CetakBerkasController extends Controller
 
         $grouped = $items
             ->groupBy(function ($item) {
+
                 return strtolower(trim($item['nama_barang']));
+
             })
             ->map(function ($rows) {
 
@@ -82,10 +97,11 @@ class CetakBerkasController extends Controller
             ->values();
 
         return ApiResponse::success([
-            'tahun'       => $tahun,
-            'aktivasi'    => $pengajuan->first()?->aktivasi,
+            'tahun' => $tahun,
+            'tipe' => $tipe,
+            'aktivasi' => $pengajuan->first()?->aktivasi,
             'total_harga' => $grouped->sum('subtotal'),
-            'items'       => $grouped,
+            'items' => $grouped,
         ]);
     }
 }
