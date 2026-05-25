@@ -22,10 +22,12 @@ return new class extends Migration
 
             $table->foreignId('jabatan_id')
                 ->constrained('jabatans')
+                ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
             $table->foreignId('unit_id')
                 ->constrained('unit_types')
+                ->cascadeOnUpdate()
                 ->cascadeOnDelete();
 
             $table->timestamps();

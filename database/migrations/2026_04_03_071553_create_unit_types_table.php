@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('parent_id')
                 ->nullable()
                 ->constrained('unit_types') 
+                ->cascadeOnUpdate()
                 ->nullOnDelete();
 
             $table->timestamps();
