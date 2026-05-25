@@ -17,6 +17,7 @@ class UpdateVendorRequest extends FormRequest
 
         return [
             'nama' => "required|string|max:255|unique:vendors,nama,$id",
+            'kontak' => 'nullable|string|max:255',
         ];
     }
 }
