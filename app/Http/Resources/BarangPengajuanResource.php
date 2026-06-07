@@ -22,6 +22,13 @@ class BarangPengajuanResource extends JsonResource
 
             'jumlah_disetujui' => $this->jumlah_disetujui,
 
+            'vendor' => $this->whenLoaded('barang', function () {
+                return [
+                    'id' => $this->barang->vendor->id ?? null,
+                    'nama' => $this->barang->vendor->nama ?? null,
+                ];
+            }),
+
             'status' => $this->status,
 
         ];

@@ -53,6 +53,19 @@ class VendorController extends Controller
             $query->withSum('barangPengajuan', 'jumlah');
         }])->get();
 
+        $vendors->each(function ($vendor) {
+            if ($vendor->relationLoaded('barang')) {
+                $vendor->setRelation('barang', $vendor->barang->filter(function ($barang) {
+                    $jumlah = $barang->barang_pengajuan_sum_jumlah_disetujui ?? $barang->barang_pengajuan_sum_jumlah ?? 0;
+                    return $jumlah > 0;
+                })->values());
+            }
+        });
+
+        $vendors = $vendors->filter(function ($vendor) {
+            return $vendor->barang->count() > 0;
+        })->values();
+
         return ApiResponse::success(
             VendorResource::collection($vendors),
             'List rekap vendor beserta barang'

@@ -22,6 +22,11 @@ class BarangPengajuanLainnyaResource extends JsonResource
 
             'satuan' => $this->satuan,
 
+            'vendor' => [
+                'id' => 'default',
+                'nama' => 'Perlengkapan',
+            ],
+
             'status' => $this->status,
 
         ];

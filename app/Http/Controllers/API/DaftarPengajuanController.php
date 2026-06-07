@@ -117,7 +117,7 @@ class DaftarPengajuanController extends Controller
             return ApiResponse::success(
                 new DaftarPengajuanResource(
                     $pengajuan->load(
-                        'barang.barang',
+                        'barang.barang.vendor',
                         'barangLainnya'
                     )
                 ),
