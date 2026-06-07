@@ -34,6 +34,28 @@ class VendorController extends Controller
         );
     }
 
+    #[OA\Get(
+        path: "/api/rekap-vendor",
+        tags: ["Vendor"],
+        summary: "List rekap vendor beserta barang",
+        security: [["bearerAuth" => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "List rekap vendor beserta barang berhasil diambil"
+            )
+        ]
+    )]
+    public function rekapVendor()
+    {
+        $vendors = Vendor::with('barang')->get();
+
+        return ApiResponse::success(
+            VendorResource::collection($vendors),
+            'List rekap vendor beserta barang'
+        );
+    }
+
     #[OA\Post(
         path: "/api/vendors",
         tags: ["Vendor"],
