@@ -48,7 +48,10 @@ class VendorController extends Controller
     )]
     public function rekapVendor()
     {
-        $vendors = Vendor::with('barang')->get();
+        $vendors = Vendor::with(['barang' => function ($query) {
+            $query->withSum('barangPengajuan', 'jumlah_disetujui');
+            $query->withSum('barangPengajuan', 'jumlah');
+        }])->get();
 
         return ApiResponse::success(
             VendorResource::collection($vendors),
