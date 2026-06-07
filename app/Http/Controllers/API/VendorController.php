@@ -48,9 +48,20 @@ class VendorController extends Controller
     )]
     public function rekapVendor()
     {
-        $vendors = Vendor::with(['barang' => function ($query) {
-            $query->withSum('barangPengajuan', 'jumlah_disetujui');
-            $query->withSum('barangPengajuan', 'jumlah');
+        $aktivasiIds = \App\Models\AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+            ->whereDate('aktif_selesai', '>=', now())
+            ->pluck('id');
+
+        $vendors = Vendor::with(['barang' => function ($query) use ($aktivasiIds) {
+            $filter = function ($q) use ($aktivasiIds) {
+                $q->where('status', 1)
+                  ->whereHas('daftarPengajuan', function ($dp) use ($aktivasiIds) {
+                      $dp->whereIn('id_aktivasi', $aktivasiIds);
+                  });
+            };
+
+            $query->withSum(['barangPengajuan' => $filter], 'jumlah_disetujui');
+            $query->withSum(['barangPengajuan' => $filter], 'jumlah');
         }])->get();
 
         $vendors->each(function ($vendor) {
