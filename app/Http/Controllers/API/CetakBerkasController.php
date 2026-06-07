@@ -86,7 +86,7 @@ class CetakBerkasController extends Controller
                     'jumlah'      => $barangLainnya->jumlah ?? 0,
                     'harga'       => 0,
                     'subtotal'    => 0,
-                    'vendor'      => '-',
+                    'vendor'      => 'Perlengkapan',
                 ]);
             }
         }

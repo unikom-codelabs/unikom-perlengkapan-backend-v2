@@ -100,6 +100,11 @@ class DaftarPengajuanController extends Controller
                 }
             }
 
+            $vendorPerlengkapan = \App\Models\Vendor::firstOrCreate(
+                ['nama' => 'Perlengkapan'],
+                ['kontak' => '-']
+            );
+
             foreach ($data['barang_lainnya'] ?? [] as $item) {
 
                 $pengajuan->barangLainnya()->create([
@@ -109,6 +114,7 @@ class DaftarPengajuanController extends Controller
                     'satuan' => $item['satuan'],
                     'jumlah_disetujui' => 0,
                     'status' => false,
+                    'vendor_id' => $vendorPerlengkapan->id,
                 ]);
             }
 
