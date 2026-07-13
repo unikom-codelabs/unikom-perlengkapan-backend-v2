@@ -13,7 +13,7 @@ class UpdateVendorRequest extends FormRequest
 
     public function rules(): array
     {
-        $id = $this->route('vendors');
+        $id = $this->route('vendor')->id ?? $this->route('vendor');
 
         return [
             'nama' => "required|string|max:255|unique:vendors,nama,$id",
