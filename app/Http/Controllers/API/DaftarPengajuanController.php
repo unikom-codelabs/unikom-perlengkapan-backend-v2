@@ -10,18 +10,55 @@ use App\Http\Requests\DaftarPengajuan\UpdateDaftarPengajuanRequest;
 use App\Http\Resources\DaftarPengajuanResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DaftarPengajuanController extends Controller
 {
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
-        $aktivasi = AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+        $data = $request->validated();
+
+        $user = auth()->user()->load('jabatan');
+
+        $jabatan = strtolower($user->jabatan->nama ?? '');
+
+        $allowedTipe = ['tahunan'];
+
+        if (
+            str_contains($jabatan, 'dekan') ||
+            str_contains($jabatan, 'kaprodi')
+        ) {
+            $allowedTipe = [
+                'tahunan',
+                'kelas',
+                'ujian',
+            ];
+        }
+
+        if (! in_array($data['tipe'], $allowedTipe)) {
+
+            return ApiResponse::error(
+                'Anda tidak memiliki akses untuk tipe pengajuan ini',
+                403
+            );
+        }
+
+        $aktivasi = AktivasiPengajuan::with('pengajuan')
+            ->whereHas('pengajuan', function ($q) use ($data) {
+                $q->where('tipe', $data['tipe']);
+            })
+            ->whereDate('aktif_mulai', '<=', now())
             ->whereDate('aktif_selesai', '>=', now())
+            ->latest('id')
             ->first();
 
         if (! $aktivasi) {
-            return ApiResponse::error('Tidak ada periode pengajuan aktif', 422);
+
+            return ApiResponse::error(
+                'Tidak ada periode pengajuan aktif',
+                422
+            );
         }
 
         $sudahMengajukan = DaftarPengajuan::where('user_id', auth()->id())
@@ -29,28 +66,30 @@ class DaftarPengajuanController extends Controller
             ->exists();
 
         if ($sudahMengajukan) {
+
             return ApiResponse::error(
                 'Anda sudah melakukan pengajuan pada periode ini',
                 422
             );
         }
 
-        $data = $request->validated();
-
         DB::beginTransaction();
 
         try {
-
             $pengajuan = DaftarPengajuan::create([
                 'id_aktivasi' => $aktivasi->id,
                 'user_id' => auth()->id(),
                 'date' => now(),
                 'surat_pengajuan' => $request->hasFile('surat_pengajuan')
-                    ? $request->file('surat_pengajuan')->store('surat_pengajuan', 'public')
+                    ? $request->file('surat_pengajuan')
+                        ->store('surat_pengajuan', 'public')
                     : '',
             ]);
+
             foreach ($data['barang'] ?? [] as $item) {
+
                 if ($item['jumlah'] > 0) {
+
                     $pengajuan->barang()->create([
                         'id_barang' => $item['id_barang'],
                         'jumlah' => $item['jumlah'],
@@ -60,7 +99,13 @@ class DaftarPengajuanController extends Controller
                 }
             }
 
+            $vendorPerlengkapan = \App\Models\Vendor::firstOrCreate(
+                ['nama' => 'Perlengkapan'],
+                ['kontak' => '-']
+            );
+
             foreach ($data['barang_lainnya'] ?? [] as $item) {
+
                 $pengajuan->barangLainnya()->create([
                     'nama' => $item['nama'],
                     'jumlah' => $item['jumlah'],
@@ -68,6 +113,7 @@ class DaftarPengajuanController extends Controller
                     'satuan' => $item['satuan'],
                     'jumlah_disetujui' => 0,
                     'status' => false,
+                    'vendor_id' => $vendorPerlengkapan->id,
                 ]);
             }
 
@@ -75,15 +121,22 @@ class DaftarPengajuanController extends Controller
 
             return ApiResponse::success(
                 new DaftarPengajuanResource(
-                    $pengajuan->load('barang.barang', 'barangLainnya')
+                    $pengajuan->load(
+                        'barang.barang.vendor',
+                        'barangLainnya'
+                    )
                 ),
                 'Pengajuan berhasil dibuat'
             );
 
         } catch (\Exception $e) {
+
             DB::rollBack();
 
-            return ApiResponse::error($e->getMessage(), 500);
+            return ApiResponse::error(
+                $e->getMessage(),
+                500
+            );
         }
     }
 
@@ -192,5 +245,81 @@ class DaftarPengajuanController extends Controller
         $daftarPengajuan->delete();
 
         return ApiResponse::deleted();
+    }
+
+    public function adminIndex(Request $request)
+    {
+        $aktivasi = $request->id_aktivasi;
+        $jabatan = $request->jabatan_id;
+        $bagian = $request->bagian_id;
+        $status = $request->status;
+        $tipe = $request->tipe;
+
+        $query = DaftarPengajuan::with([
+            'user.jabatan',
+            'user.unit',
+            'aktivasi.pengajuan',
+            'barang.barang.vendor',
+            'barangLainnya',
+        ]);
+
+        if ($aktivasi) {
+
+            $query->where('id_aktivasi', $aktivasi);
+        }
+
+        if ($jabatan) {
+
+            $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
+
+                $q->where('id', $jabatan);
+
+            });
+        }
+
+        if ($bagian) {
+
+            $query->whereHas('user.unit', function ($q) use ($bagian) {
+
+                $q->where('id', $bagian);
+
+            });
+        }
+
+        if ($tipe) {
+
+            $query->whereHas('aktivasi.pengajuan', function ($q) use ($tipe) {
+
+                $q->where('tipe', $tipe);
+
+            });
+        }
+
+        if ($status !== null) {
+
+            $query->where(function ($q) use ($status) {
+
+                $q->whereHas('barang', function ($sub) use ($status) {
+
+                    $sub->where('status', $status);
+
+                })->orWhereHas('barangLainnya', function ($sub) use ($status) {
+
+                    $sub->where('status', $status);
+
+                });
+
+            });
+        }
+
+        $data = $query->latest()->get();
+
+        return ApiResponse::success(
+
+            DaftarPengajuanResource::collection($data),
+
+            'List pengajuan admin'
+
+        );
     }
 }

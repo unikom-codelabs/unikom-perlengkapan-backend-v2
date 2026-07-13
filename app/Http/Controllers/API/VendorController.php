@@ -21,6 +21,43 @@ class VendorController extends Controller
         );
     }
 
+    public function rekapVendor()
+    {
+        $aktivasiIds = \App\Models\AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+            ->whereDate('aktif_selesai', '>=', now())
+            ->pluck('id');
+
+        $vendors = Vendor::with(['barang' => function ($query) use ($aktivasiIds) {
+            $filter = function ($q) use ($aktivasiIds) {
+                $q->where('status', 1)
+                  ->whereHas('daftarPengajuan', function ($dp) use ($aktivasiIds) {
+                      $dp->whereIn('id_aktivasi', $aktivasiIds);
+                  });
+            };
+
+            $query->withSum(['barangPengajuan' => $filter], 'jumlah_disetujui');
+            $query->withSum(['barangPengajuan' => $filter], 'jumlah');
+        }])->get();
+
+        $vendors->each(function ($vendor) {
+            if ($vendor->relationLoaded('barang')) {
+                $vendor->setRelation('barang', $vendor->barang->filter(function ($barang) {
+                    $jumlah = $barang->barang_pengajuan_sum_jumlah_disetujui ?? $barang->barang_pengajuan_sum_jumlah ?? 0;
+                    return $jumlah > 0;
+                })->values());
+            }
+        });
+
+        $vendors = $vendors->filter(function ($vendor) {
+            return $vendor->barang->count() > 0;
+        })->values();
+
+        return ApiResponse::success(
+            VendorResource::collection($vendors),
+            'List rekap vendor beserta barang'
+        );
+    }
+
     public function store(StoreVendorRequest $request)
     {
         $vendor = Vendor::create($request->validated());

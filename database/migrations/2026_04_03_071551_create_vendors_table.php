@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
 
             $table->string('nama');
+            $table->string('kontak')->nullable();
+            $table->string('alamat')->nullable();
             $table->timestamps();
         });
     }

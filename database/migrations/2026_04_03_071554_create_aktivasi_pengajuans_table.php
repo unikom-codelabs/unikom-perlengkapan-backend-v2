@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('aktivasi_pengajuan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_pengajuan')->constrained('pengajuan');
+            $table->foreignId('id_pengajuan')->constrained('pengajuan')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('aktif_mulai');
             $table->date('aktif_selesai');
             $table->enum('tipe', ['rutin', 'nonrutin']);

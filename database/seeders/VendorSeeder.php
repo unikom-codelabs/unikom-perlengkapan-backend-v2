@@ -11,16 +11,20 @@ class VendorSeeder extends Seeder
     {
         Vendor::insert([
             [
-                'nama' => 'Gramedia'
+                'nama' => 'Gramedia',
+                'kontak' => '081234567890'
             ],
             [
-                'nama' => 'Epson'
+                'nama' => 'Epson',
+                'kontak' => '082345678901'
             ],
             [
-                'nama' => 'Kenko'
+                'nama' => 'Kenko',
+                'kontak' => '083456789012'
             ],
             [
-                'nama' => 'Standard Stationery'
+                'nama' => 'Standard Stationery',
+                'kontak' => '084567890123'
             ]
         ]);
     }

@@ -29,6 +29,7 @@ return new class extends Migration
             $table->foreignId('vendor_id')
                 ->nullable()
                 ->constrained('vendors')
+                ->casecadeOnUpdate()
                 ->nullOnDelete();
             $table->decimal('harga', 15, 2)->nullable();
             $table->timestamps();

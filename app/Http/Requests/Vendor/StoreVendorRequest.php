@@ -15,7 +15,7 @@ class StoreVendorRequest extends FormRequest
     {
         return [
             'nama' => 'required|string|max:255|unique:vendors,nama',
-            'kontak_person' => 'nullable|string|max:255',
+            'kontak' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
         ];
     }

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('barang_pengajuan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('daftar_pengajuan_id')->constrained('daftar_pengajuan');
-            $table->foreignId('id_barang')->constrained('barang');
+            $table->foreignId('daftar_pengajuan_id')->constrained('daftar_pengajuan')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('id_barang')->constrained('barang')->cascadeOnUpdate()->cascadeOnDelete();
             $table->integer('jumlah');
             $table->integer('jumlah_disetujui')->default(0);
             $table->boolean('status')->default(false);

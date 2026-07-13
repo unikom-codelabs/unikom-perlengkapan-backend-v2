@@ -24,7 +24,7 @@ class PengajuanResource extends JsonResource
 
                 'jabatan' => $this->user?->jabatan?->nama,
 
-                'unit' => $this->user?->unit?->nama
+                'unit' => $this->user?->unit?->nama,
             ],
 
             'aktivasi' => [
@@ -40,26 +40,19 @@ class PengajuanResource extends JsonResource
 
                 'jenis_pengajuan' => $this->aktivasi?->pengajuan?->tipe,
 
-                'semester' => $this->aktivasi?->pengajuan?->semester
+                'semester' => $this->aktivasi?->pengajuan?->semester,
             ],
 
             'barang' => $this->barang->map(function ($item) {
-
                 return [
-
                     'id' => $item->id,
-
-                    'nama_barang' => $item->barang?->nama,
-
-                    'kategori' => $item->barang?->kategori,
-
-                    'vendor' => $item->barang?->vendor?->nama,
-
+                    'nama_barang' => $item->barang->nama,
+                    'kategori' => $item->barang->kategori,
+                    'unit' => $item->barang->unit,
+                    'vendor' => $item->barang->vendor->nama,
                     'jumlah_diajukan' => $item->jumlah,
-
                     'jumlah_disetujui' => $item->jumlah_disetujui,
-
-                    'status' => $item->status
+                    'status' => $item->status,
                 ];
             }),
 
@@ -79,9 +72,9 @@ class PengajuanResource extends JsonResource
 
                     'jumlah_disetujui' => $item->jumlah_disetujui,
 
-                    'status' => $item->status
+                    'status' => $item->status,
                 ];
-            })
+            }),
 
         ];
     }

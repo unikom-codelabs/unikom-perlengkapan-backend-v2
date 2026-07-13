@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 #[Fillable([
     'nama',
-    'kontak_person',
+    'kontak',
     'alamat',
 ])]
 

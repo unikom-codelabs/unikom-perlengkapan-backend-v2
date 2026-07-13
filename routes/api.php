@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BarangController;
 use App\Http\Controllers\API\BarangPengajuanController;
 use App\Http\Controllers\API\BarangPengajuanLainnyaController;
+use App\Http\Controllers\API\CetakBerkasController;
 use App\Http\Controllers\API\DaftarPengajuanController;
 use App\Http\Controllers\API\JabatanController;
 use App\Http\Controllers\API\PengajuanController;
@@ -45,7 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('my-pengajuan', [PengajuanController::class, 'my']);
 
-    Route::get('histori-pengajuan', [PengajuanController::class, 'histori']);
+    Route::get('/histori', [PengajuanController::class, 'histori']);
+    Route::get('/histori-pengajuan/my', [PengajuanController::class, 'historiMy']);
 });
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
@@ -53,11 +55,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::apiResource('users', UserController::class);
     Route::post('users/sync', [UserController::class, 'syncFromApi']);
     Route::get('dropdown', [UserController::class, 'dropdown']);
+    Route::get('rekap-vendor', [VendorController::class, 'rekapVendor']);
     Route::apiResource('vendors', VendorController::class);
 
     Route::patch(
         'aktivasi-pengajuan/{aktivasiPengajuan}/activate',
         [AktivasiController::class, 'activate']
+    );
+
+    Route::get(
+        '/aktivasi-pengajuan/{id}/summary',
+        [AktivasiController::class, 'summary']
     );
 
     Route::get(
@@ -88,5 +96,10 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::patch(
         'admin/barang-pengajuan-lainnya/{barangPengajuanLainnya}/approve',
         [BarangPengajuanLainnyaController::class, 'approve']
+    );
+
+    Route::get(
+        '/admin/cetak-berkas',
+        [CetakBerkasController::class, 'index']
     );
 });

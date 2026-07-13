@@ -2,18 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'nama',
     'parent_id',
-     'type'
 ])]
 
 class UnitType extends Model
 {
-
     protected $table = 'unit_types';
 
     public function parent()
@@ -29,5 +27,10 @@ class UnitType extends Model
     public function users()
     {
         return $this->hasMany(User::class, 'unit_id');
+    }
+
+    public function childrenRecursive()
+    {
+        return $this->children()->with('childrenRecursive');
     }
 }

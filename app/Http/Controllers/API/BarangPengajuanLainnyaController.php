@@ -4,15 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BarangPengajuanLainnya\StoreBarangPengajuanLainnyaRequest;
-use App\Http\Requests\BarangPengajuanLainnya\UpdateBarangPengajuanLainnyaRequest;
 use App\Http\Resources\BarangPengajuanLainnyaResource;
 use App\Models\BarangPengajuanLainnya;
 use Illuminate\Http\Request;
 
 class BarangPengajuanLainnyaController extends Controller
 {
-
     public function approve(Request $request, BarangPengajuanLainnya $barangPengajuanLainnya)
     {
         $validated = $request->validate([
@@ -25,7 +22,8 @@ class BarangPengajuanLainnyaController extends Controller
 
             'status' => [
                 'required',
-                'boolean',
+                'integer',
+                'in:0,1,2',
             ],
 
         ]);
@@ -37,5 +35,4 @@ class BarangPengajuanLainnyaController extends Controller
             'Barang manual berhasil di approve'
         );
     }
-
 }

@@ -22,6 +22,7 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'tipe' => ['required', 'in:tahunan,ujian,kelas'],
              
             'date' => [
                 'nullable',

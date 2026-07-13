@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
     'kategori',
     'satuan',
     'status',
+    'vendor_id',
 ])]
 
 class BarangPengajuanLainnya extends Model

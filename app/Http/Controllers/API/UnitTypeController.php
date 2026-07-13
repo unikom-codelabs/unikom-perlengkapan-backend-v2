@@ -12,7 +12,6 @@ use Illuminate\Http\Request;
 
 class UnitTypeController extends Controller
 {
-
     public function index(Request $request)
     {
         $query = UnitType::query();
@@ -32,7 +31,7 @@ class UnitTypeController extends Controller
 
             $data = $query
                 ->whereNull('parent_id')
-                ->with('children.children')
+                ->with('childrenRecursive')
                 ->get();
         }
 
@@ -40,7 +39,6 @@ class UnitTypeController extends Controller
             UnitTypeResource::collection($data)
         );
     }
-
 
     public function store(StoreUnitTypeRequest $request)
     {
@@ -51,16 +49,14 @@ class UnitTypeController extends Controller
         );
     }
 
-
     public function show(UnitType $unitType)
     {
-        $unitType->load('children.children');
+        $unitType->load('childrenRecursive');
 
         return ApiResponse::success(
             new UnitTypeResource($unitType)
         );
     }
-
 
     public function update(UpdateUnitTypeRequest $request, UnitType $unitType)
     {
@@ -70,7 +66,6 @@ class UnitTypeController extends Controller
             new UnitTypeResource($unitType)
         );
     }
-
 
     public function destroy(UnitType $unitType)
     {

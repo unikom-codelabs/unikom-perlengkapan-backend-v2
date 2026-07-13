@@ -12,8 +12,9 @@ class VendorResource extends JsonResource
         return [
             'id' => $this->id,
             'nama' => $this->nama,
-            'kontak_person' => $this->kontak_person,
+            'kontak' => $this->kontak,
             'alamat' => $this->alamat,
+            'barang' => BarangResource::collection($this->whenLoaded('barang')),
             'created_at' => $this->created_at,
         ];
     }

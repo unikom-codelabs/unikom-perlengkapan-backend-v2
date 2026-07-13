@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('daftar_pengajuan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_aktivasi')->constrained('aktivasi_pengajuan');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('id_aktivasi')->constrained('aktivasi_pengajuan')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('date');
             $table->string('surat_pengajuan');
             $table->timestamps();

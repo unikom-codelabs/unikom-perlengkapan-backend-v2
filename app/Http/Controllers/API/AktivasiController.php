@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AktivasiPengajuan\StoreAktivasiPengajuanRequest;
 use App\Http\Requests\AktivasiPengajuan\UpdateAktivasiPengajuanRequest;
 use App\Http\Resources\AktivasiPengajuanResource;
+use App\Http\Resources\BarangPengajuanLainnyaResource;
 use App\Models\AktivasiPengajuan;
+use App\Models\DaftarPengajuan;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AktivasiController extends Controller
@@ -113,6 +117,88 @@ class AktivasiController extends Controller
 
                 $aktivasiPengajuan->load('pengajuan')
             ),
+        ]);
+    }
+
+    public function summary($id)
+    {
+        $aktivasi = AktivasiPengajuan::with('pengajuan')
+            ->findOrFail($id);
+
+        $totalPengaju = User::count();
+
+        $sudahPengajuan = DaftarPengajuan::where(
+            'id_aktivasi',
+            $id
+        )
+            ->distinct('user_id')
+            ->count();
+
+        $units = User::with([
+            'unit',
+            'jabatan',
+        ])
+            ->get()
+            ->map(function ($user) use ($id) {
+
+                $pengajuan = DaftarPengajuan::with([
+                    'barang.barang.vendor',
+                    'barangLainnya',
+                ])
+                    ->where('id_aktivasi', $id)
+                    ->where('user_id', $user->id)
+                    ->first();
+
+                return [
+
+                    // FIX
+                    'nama' => $user->username,
+
+                    'unit' => $user->unit?->nama ?? '-',
+
+                    'jabatan' => $user->jabatan?->nama ?? '-',
+
+                    'status' => $pengajuan
+                        ? 'Sudah Pengajuan'
+                        : 'Belum Pengajuan',
+
+                    'barang' => $pengajuan
+                        ? $pengajuan->barang->map(function ($item) {
+
+                            return [
+
+                                // FIX
+                                'nama_barang' => $item->barang?->nama ?? '-',
+
+                                // FIX
+                                'qty' => $item->jumlah ?? 0,
+
+                                'jumlah_disetujui' => $item->jumlah_disetujui ?? 0,
+
+                                'status' => $item->status ?? '-',
+
+                                'vendor' => $item->barang?->vendor?->nama ?? '-',
+                            ];
+                        })
+                        : [],
+
+                    'barang_lainnya' => $pengajuan
+                        ? BarangPengajuanLainnyaResource::collection(
+                            $pengajuan->barangLainnya
+                        )
+                        : [],
+                ];
+            });
+
+        return ApiResponse::success([
+            'aktivasi' => $aktivasi,
+
+            'statistik' => [
+                'jumlah_pengajuan_masuk' => $sudahPengajuan,
+                'total_pengaju' => $totalPengaju,
+            ],
+
+            'detail_pengajuan' => $units,
         ]);
     }
 }

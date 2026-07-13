@@ -12,7 +12,13 @@ class DaftarPengajuanResource extends JsonResource
 
             'id' => $this->id,
 
-            'user' => $this->user?->username,
+            'user' => [
+                'id' => $this->user?->id,
+                'nama' => $this->user?->username,
+                'nip' => $this->user?->nip,
+                'jabatan' => $this->user?->jabatan?->nama,
+                'unit' => $this->user?->unit?->nama,
+            ],
 
             'aktivasi_pengajuan' => $this->aktivasi?->tipe,
 
