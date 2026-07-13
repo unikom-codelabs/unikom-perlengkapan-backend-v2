@@ -88,6 +88,16 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
                 'string',
             ],
 
+            'barang_lainnya.*.catatan' => [
+                'nullable',
+                'string',
+            ],
+
+            'barang_lainnya.*.note' => [
+                'nullable',
+                'string',
+            ],
+
             'barang_lainnya.*.bukti_foto' => [
                 'nullable',
                 'file',

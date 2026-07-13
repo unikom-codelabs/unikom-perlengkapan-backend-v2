@@ -112,6 +112,8 @@ class DaftarPengajuanController extends Controller
                     $buktiFotoPath = $item['bukti_foto']->store('bukti_foto_pengajuan', 'public');
                 } elseif ($request->hasFile("barang_lainnya.{$index}.bukti_foto")) {
                     $buktiFotoPath = $request->file("barang_lainnya.{$index}.bukti_foto")->store('bukti_foto_pengajuan', 'public');
+                } elseif ($request->hasFile("bukti_foto_{$index}")) {
+                    $buktiFotoPath = $request->file("bukti_foto_{$index}")->store('bukti_foto_pengajuan', 'public');
                 }
 
                 $pengajuan->barangLainnya()->create([
@@ -119,7 +121,7 @@ class DaftarPengajuanController extends Controller
                     'jumlah' => $item['jumlah'],
                     'kategori' => $item['kategori'],
                     'satuan' => $item['satuan'],
-                    'alasan' => $item['alasan'] ?? null,
+                    'alasan' => $item['alasan'] ?? $item['catatan'] ?? $item['note'] ?? null,
                     'bukti_foto' => $buktiFotoPath,
                     'jumlah_disetujui' => 0,
                     'status' => false,
