@@ -21,6 +21,7 @@ class DaftarPengajuanResource extends JsonResource
             ],
 
             'aktivasi_pengajuan' => $this->aktivasi?->tipe,
+            'tahun_akademik' => $this->aktivasi?->tahun_akademik,
 
             'surat_pengajuan' => $this->surat_pengajuan,
 
