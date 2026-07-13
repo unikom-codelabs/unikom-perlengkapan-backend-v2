@@ -15,7 +15,6 @@ use Illuminate\Http\Request;
 
 class AktivasiController extends Controller
 {
-    //
     public function index(Request $request)
     {
 
