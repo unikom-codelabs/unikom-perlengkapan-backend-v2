@@ -73,6 +73,10 @@ class PengajuanResource extends JsonResource
                     'jumlah_disetujui' => $item->jumlah_disetujui,
 
                     'status' => $item->status,
+
+                    'bukti_foto' => $item->bukti_foto,
+
+                    'alasan' => $item->alasan,
                 ];
             }),
 
