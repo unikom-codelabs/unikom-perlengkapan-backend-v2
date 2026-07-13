@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class DaftarPengajuanController extends Controller
 {
+    //daftar_pengajuan
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
         $data = $request->validated();
