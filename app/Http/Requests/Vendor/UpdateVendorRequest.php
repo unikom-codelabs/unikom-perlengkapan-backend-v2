@@ -13,6 +13,7 @@ class UpdateVendorRequest extends FormRequest
 
     public function rules(): array
     {
+        //ngedit satu2
         $id = $this->route('vendor')->id ?? $this->route('vendor');
 
         return [
