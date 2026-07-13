@@ -19,6 +19,9 @@ jobs:
           script: |
             set -e
 
+            # Fix DNS Resolution Issue on the server
+            echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null || true
+
             cd /var/www/html/unikom-perlengkapan-backend-v2
 
             git fetch origin dev
