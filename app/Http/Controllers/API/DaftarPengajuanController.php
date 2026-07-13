@@ -104,13 +104,23 @@ class DaftarPengajuanController extends Controller
                 ['kontak' => '-']
             );
 
-            foreach ($data['barang_lainnya'] ?? [] as $item) {
+            foreach ($data['barang_lainnya'] ?? [] as $index => $item) {
+
+                $buktiFotoPath = null;
+                // Form-data with files may place the file directly in the array or in request->file()
+                if (isset($item['bukti_foto']) && $item['bukti_foto'] instanceof \Illuminate\Http\UploadedFile) {
+                    $buktiFotoPath = $item['bukti_foto']->store('bukti_foto_pengajuan', 'public');
+                } elseif ($request->hasFile("barang_lainnya.{$index}.bukti_foto")) {
+                    $buktiFotoPath = $request->file("barang_lainnya.{$index}.bukti_foto")->store('bukti_foto_pengajuan', 'public');
+                }
 
                 $pengajuan->barangLainnya()->create([
                     'nama' => $item['nama'],
                     'jumlah' => $item['jumlah'],
                     'kategori' => $item['kategori'],
                     'satuan' => $item['satuan'],
+                    'alasan' => $item['alasan'] ?? null,
+                    'bukti_foto' => $buktiFotoPath,
                     'jumlah_disetujui' => 0,
                     'status' => false,
                     'vendor_id' => $vendorPerlengkapan->id,

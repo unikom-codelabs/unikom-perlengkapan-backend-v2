@@ -13,9 +13,12 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
 
     protected function prepareForValidation()
     {
+        $barang = $this->input('barang', []);
+        $barangLainnya = $this->input('barang_lainnya', []);
+
         $this->merge([
-            'barang' => json_decode($this->input('barang') ?? '[]', true),
-            'barang_lainnya' => json_decode($this->input('barang_lainnya') ?? '[]', true),
+            'barang' => is_string($barang) ? json_decode($barang, true) : $barang,
+            'barang_lainnya' => is_string($barangLainnya) ? json_decode($barangLainnya, true) : $barangLainnya,
         ]);
     }
 
@@ -78,6 +81,18 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
+            ],
+
+            'barang_lainnya.*.alasan' => [
+                'nullable',
+                'string',
+            ],
+
+            'barang_lainnya.*.bukti_foto' => [
+                'nullable',
+                'file',
+                'mimes:jpg,jpeg,png',
+                'max:2048',
             ],
         ];
     }

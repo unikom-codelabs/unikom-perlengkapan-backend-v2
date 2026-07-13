@@ -22,6 +22,10 @@ class BarangPengajuanLainnyaResource extends JsonResource
 
             'satuan' => $this->satuan,
 
+            'bukti_foto' => $this->bukti_foto,
+
+            'alasan' => $this->alasan,
+
             'vendor' => [
                 'id' => 'default',
                 'nama' => 'Perlengkapan',

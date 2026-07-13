@@ -9,8 +9,9 @@ class UpdateJabatanRequest extends FormRequest
 {
     public function rules()
     {
+        $id = $this->route('jabatan')->id ?? $this->route('jabatan');
         return [
-            'nama' => 'sometimes|string|max:100|unique:jabatans,nama,' . $this->id
+            'nama' => 'sometimes|string|max:100|unique:jabatans,nama,' . $id
         ];
     }
 }
