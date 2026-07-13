@@ -18,6 +18,12 @@ class DaftarPengajuanController extends Controller
     //daftar_pengajuan
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
+        \Illuminate\Support\Facades\Log::info('StoreFull Request Debug', [
+            'all' => $request->all(),
+            'files' => $request->allFiles(),
+            'barang_lainnya_raw' => $request->input('barang_lainnya'),
+        ]);
+
         $data = $request->validated();
 
         $user = auth()->user()->load('jabatan');

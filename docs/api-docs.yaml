@@ -355,10 +355,11 @@ paths:
       security:
         -
           bearerAuth: []
+  /api/daftar-pengajuan/full:
     post:
       tags:
         - 'Daftar Pengajuan'
-      summary: 'Buat pengajuan baru'
+      summary: 'Buat pengajuan baru (Full)'
       operationId: 0171a190b4cd6a614e5690bd1f16aa7b
       requestBody:
         required: true
@@ -366,18 +367,32 @@ paths:
           multipart/form-data:
             schema:
               required:
-                - aktivasi_pengajuan_id
+                - tipe
               properties:
-                aktivasi_pengajuan_id:
-                  type: integer
-                  example: 1
+                tipe:
+                  type: string
+                  enum: [tahunan, ujian, kelas]
+                  example: 'tahunan'
+                date:
+                  type: string
+                  format: date
+                  example: '2026-07-13'
                 surat_pengajuan:
-                  description: 'File surat pengajuan'
+                  description: 'File surat pengajuan (.pdf, .doc, .docx)'
                   type: string
                   format: binary
-                catatan:
+                barang:
+                  description: 'Array of JSON objects atau JSON string [{"id_barang": 1, "jumlah": 10}]'
                   type: string
-                  example: 'Pengajuan kebutuhan ATK'
+                  example: '[{"id_barang": 1, "jumlah": 10}]'
+                barang_lainnya:
+                  description: 'Array of JSON objects atau JSON string [{"nama": "Kabel", "jumlah": 5, "kategori": "habis_pakai", "satuan": "pcs", "alasan": "butuh"}]'
+                  type: string
+                  example: '[{"nama": "Kabel", "jumlah": 5, "kategori": "habis_pakai", "satuan": "pcs", "alasan": "butuh"}]'
+                bukti_foto_0:
+                  description: 'File bukti foto untuk barang_lainnya index ke-0'
+                  type: string
+                  format: binary
               type: object
       responses:
         201:
