@@ -9,7 +9,6 @@ use App\Http\Requests\BarangPengajuan\UpdateBarangPengajuanRequest;
 use App\Http\Resources\BarangPengajuanResource;
 use App\Models\BarangPengajuan;
 use Illuminate\Http\Request;
-use OpenApi\Attributes as OA;
 
 class BarangPengajuanController extends Controller
 {

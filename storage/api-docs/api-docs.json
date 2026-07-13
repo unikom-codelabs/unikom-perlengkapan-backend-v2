@@ -15,11 +15,23 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "List semua periode pengajuan",
+                "summary": "List semua aktivasi pengajuan",
                 "operationId": "7898bc783d4bdee028c5c1863371e11f",
+                "parameters": [
+                    {
+                        "name": "tipe",
+                        "in": "query",
+                        "description": "Filter tipe pengajuan (kelas, ujian, tahunan)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "kelas"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "List periode pengajuan"
+                        "description": "Berhasil ambil data"
                     }
                 },
                 "security": [
@@ -32,7 +44,7 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "Buat periode pengajuan",
+                "summary": "Tambah aktivasi",
                 "operationId": "dc59b6544dad01b139b88563f3807eab",
                 "requestBody": {
                     "required": true,
@@ -40,28 +52,32 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "nama_periode",
-                                    "tanggal_mulai",
-                                    "tanggal_selesai"
+                                    "id_pengajuan",
+                                    "aktif_mulai",
+                                    "aktif_selesai",
+                                    "tipe",
+                                    "tahun_akademik"
                                 ],
                                 "properties": {
-                                    "nama_periode": {
-                                        "type": "string",
-                                        "example": "Periode Januari 2026"
+                                    "id_pengajuan": {
+                                        "type": "integer",
+                                        "example": 1
                                     },
-                                    "tanggal_mulai": {
+                                    "aktif_mulai": {
                                         "type": "string",
-                                        "format": "date",
                                         "example": "2026-01-01"
                                     },
-                                    "tanggal_selesai": {
+                                    "aktif_selesai": {
                                         "type": "string",
-                                        "format": "date",
-                                        "example": "2026-01-31"
+                                        "example": "2026-12-31"
                                     },
-                                    "status_aktif": {
-                                        "type": "boolean",
-                                        "example": true
+                                    "tipe": {
+                                        "type": "string",
+                                        "example": "rutin"
+                                    },
+                                    "tahun_akademik": {
+                                        "type": "string",
+                                        "example": "2026/2027"
                                     }
                                 },
                                 "type": "object"
@@ -70,8 +86,8 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Periode berhasil dibuat"
+                    "200": {
+                        "description": "Berhasil membuat aktivasi"
                     }
                 },
                 "security": [
@@ -86,13 +102,12 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "Detail periode pengajuan",
+                "summary": "Detail aktivasi",
                 "operationId": "5c0a47305749035993267aee851da878",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID periode",
                         "required": true,
                         "schema": {
                             "type": "integer",
@@ -102,7 +117,10 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Detail periode"
+                        "description": "Detail ditemukan"
+                    },
+                    "404": {
+                        "description": "Data tidak ditemukan"
                     }
                 },
                 "security": [
@@ -115,43 +133,37 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "Update periode pengajuan",
+                "summary": "Update aktivasi",
                 "operationId": "d90c5670b75fe048c6f9ab869e525f13",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID periode",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "integer"
                         }
                     }
                 ],
                 "requestBody": {
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "nama_periode": {
-                                        "type": "string",
-                                        "example": "Periode Februari 2026"
+                                    "id_pengajuan": {
+                                        "type": "integer"
                                     },
-                                    "tanggal_mulai": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2026-02-01"
+                                    "aktif_mulai": {
+                                        "type": "string"
                                     },
-                                    "tanggal_selesai": {
-                                        "type": "string",
-                                        "format": "date",
-                                        "example": "2026-02-28"
+                                    "aktif_selesai": {
+                                        "type": "string"
                                     },
-                                    "status_aktif": {
-                                        "type": "boolean",
-                                        "example": true
+                                    "tipe": {
+                                        "type": "string"
+                                    },
+                                    "tahun_akademik": {
+                                        "type": "string"
                                     }
                                 },
                                 "type": "object"
@@ -161,10 +173,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Periode berhasil diupdate"
-                    },
-                    "422": {
-                        "description": "Validasi gagal"
+                        "description": "Berhasil update"
                     }
                 },
                 "security": [
@@ -177,23 +186,55 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "Hapus periode pengajuan",
+                "summary": "Hapus aktivasi",
                 "operationId": "84fece43e382b68ca4a60b9405200d9b",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID periode",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "integer"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Periode berhasil dihapus"
+                        "description": "Berhasil hapus"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/periode-aktif": {
+            "get": {
+                "tags": [
+                    "Aktivasi Pengajuan"
+                ],
+                "summary": "Ambil periode aktif saat ini",
+                "operationId": "a7f6f21d60de84be4e47ccf2ccd2561a",
+                "parameters": [
+                    {
+                        "name": "tipe",
+                        "in": "query",
+                        "description": "kelas | ujian | tahunan",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "ujian"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Periode aktif ditemukan"
+                    },
+                    "404": {
+                        "description": "Tidak ada periode aktif"
                     }
                 },
                 "security": [
@@ -208,45 +249,21 @@
                 "tags": [
                     "Aktivasi Pengajuan"
                 ],
-                "summary": "Aktifkan periode pengajuan",
+                "summary": "Aktifkan periode",
                 "operationId": "ff8559bf2c0d49f45ee59256f5c9e369",
                 "parameters": [
                     {
                         "name": "id",
                         "in": "path",
-                        "description": "ID periode",
                         "required": true,
                         "schema": {
-                            "type": "integer",
-                            "example": 1
+                            "type": "integer"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Periode diaktifkan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/aktivasi-pengajuan-current": {
-            "get": {
-                "tags": [
-                    "Aktivasi Pengajuan"
-                ],
-                "summary": "Ambil periode aktif saat ini",
-                "operationId": "e7c4304424112a0d035c12c443a1eb69",
-                "responses": {
-                    "200": {
-                        "description": "Periode aktif ditemukan"
-                    },
-                    "404": {
-                        "description": "Tidak ada periode aktif"
+                        "description": "Berhasil aktivasi"
                     }
                 },
                 "security": [
@@ -433,327 +450,6 @@
                 "responses": {
                     "200": {
                         "description": "Deleted"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/barang-pengajuan": {
-            "post": {
-                "tags": [
-                    "Barang Pengajuan"
-                ],
-                "summary": "Tambah barang pengajuan",
-                "operationId": "6cb519615229bc3c9d175f1032b047db",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "barang_id",
-                                    "jumlah"
-                                ],
-                                "properties": {
-                                    "barang_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 10
-                                    },
-                                    "keterangan": {
-                                        "type": "string",
-                                        "example": "Untuk kebutuhan operasional"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Barang berhasil ditambahkan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/barang-pengajuan/{id}/approve": {
-            "patch": {
-                "tags": [
-                    "Barang Pengajuan"
-                ],
-                "summary": "Approve barang pengajuan",
-                "operationId": "e622cf87a6d82dd68ad95b850f98d203",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Barang Pengajuan",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "jumlah_disetujui",
-                                    "status"
-                                ],
-                                "properties": {
-                                    "jumlah_disetujui": {
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "status": {
-                                        "description": "1=approve, 2=reject",
-                                        "type": "integer",
-                                        "example": 1
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Barang berhasil di approve"
-                    },
-                    "422": {
-                        "description": "Validasi gagal"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/barang-pengajuan/{id}": {
-            "put": {
-                "tags": [
-                    "Barang Pengajuan"
-                ],
-                "summary": "Update barang pengajuan",
-                "operationId": "d7720190bf54920ef1b4a4d7c8e49240",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Barang Pengajuan",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "barang_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 15
-                                    },
-                                    "keterangan": {
-                                        "type": "string",
-                                        "example": "Update kebutuhan"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Barang berhasil diupdate"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Barang Pengajuan"
-                ],
-                "summary": "Hapus barang pengajuan",
-                "operationId": "23321121d35768c1af1b39a00480acc1",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Barang Pengajuan",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Barang berhasil dihapus"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/barang-pengajuan-lainnya": {
-            "post": {
-                "tags": [
-                    "Barang Pengajuan Lainnya"
-                ],
-                "summary": "Tambah barang manual",
-                "operationId": "6f0ac66018d39022e877484ce313973c",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "nama_barang",
-                                    "jumlah"
-                                ],
-                                "properties": {
-                                    "nama_barang": {
-                                        "type": "string",
-                                        "example": "Mouse Wireless"
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 3
-                                    },
-                                    "keterangan": {
-                                        "type": "string",
-                                        "example": "Untuk kebutuhan divisi IT"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Barang manual berhasil ditambahkan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/barang-pengajuan-lainnya/{id}": {
-            "put": {
-                "tags": [
-                    "Barang Pengajuan Lainnya"
-                ],
-                "summary": "Update barang manual",
-                "operationId": "5a0ec6a505006c164bcca503b33d4b5d",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Barang Pengajuan Lainnya",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "nama_barang": {
-                                        "type": "string",
-                                        "example": "Keyboard Mechanical"
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 5
-                                    },
-                                    "keterangan": {
-                                        "type": "string",
-                                        "example": "Update kebutuhan divisi"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Barang manual berhasil diupdate"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Barang Pengajuan Lainnya"
-                ],
-                "summary": "Hapus barang manual",
-                "operationId": "033275eca2d743a709cacc6d646ec68b",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "ID Barang Pengajuan Lainnya",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Barang manual berhasil dihapus"
                     }
                 },
                 "security": [
@@ -1153,102 +849,16 @@
                 ]
             }
         },
-        "/api/pengajuan": {
-            "get": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "List pengajuan (admin lihat semua, user hanya miliknya)",
-                "operationId": "44ae750b962d2ccd6412fcf2b029d680",
-                "responses": {
-                    "200": {
-                        "description": "List pengajuan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "post": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "Buat pengajuan",
-                "operationId": "958d3f0bb570dd548b60bb7eb38babfe",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "id_aktivasi": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "keterangan": {
-                                        "type": "string",
-                                        "example": "Pengajuan ATK"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "pengajuan dibuat"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/pengajuan/{id}": {
-            "get": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "Detail pengajuan",
-                "operationId": "fa380e728f4e6330a677524fd707387a",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Detail pengajuan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/pengajuan/my": {
             "get": {
                 "tags": [
                     "Pengajuan"
                 ],
-                "summary": "List pengajuan milik user login",
+                "summary": "Pengajuan milik user login",
                 "operationId": "8e0da59217882fe7ee27c00843d047fe",
                 "responses": {
                     "200": {
-                        "description": "List pengajuan milik user"
+                        "description": "Berhasil mengambil pengajuan saya"
                     }
                 },
                 "security": [
@@ -1258,182 +868,16 @@
                 ]
             }
         },
-        "/api/pengajuan/upload-surat": {
-            "post": {
+        "/api/histori-pengajuan": {
+            "get": {
                 "tags": [
                     "Pengajuan"
                 ],
-                "summary": "Upload file surat",
-                "operationId": "1c413e24e0bdc5e9dbbdcc10a9c4c0d1",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "required": [
-                                    "surat"
-                                ],
-                                "properties": {
-                                    "surat": {
-                                        "description": "file pdf/doc/docx",
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
+                "summary": "Histori pengajuan berdasarkan tahun",
+                "operationId": "901df0dbf83db9d59c1b5496c8cba460",
                 "responses": {
                     "200": {
-                        "description": "upload berhasil"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/pengajuan/tambah-barang": {
-            "post": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "Tambah barang ke pengajuan",
-                "operationId": "167d39be3b94a6e6ea181f29350c439f",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "daftar_pengajuan_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "barang_id": {
-                                        "type": "integer",
-                                        "example": 2
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 5
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "barang ditambahkan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/pengajuan/tambah-barang-lainnya": {
-            "post": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "Tambah barang manual ke pengajuan",
-                "operationId": "ee9bf058998b523cd75bef2a06f1131b",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "daftar_pengajuan_id": {
-                                        "type": "integer",
-                                        "example": 1
-                                    },
-                                    "nama": {
-                                        "type": "string",
-                                        "example": "Flashdisk"
-                                    },
-                                    "jumlah": {
-                                        "type": "integer",
-                                        "example": 2
-                                    },
-                                    "satuan": {
-                                        "type": "string",
-                                        "example": "pcs"
-                                    },
-                                    "kategori": {
-                                        "type": "string",
-                                        "example": "IT"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "barang lainnya ditambahkan"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/pengajuan/approval/{id}": {
-            "patch": {
-                "tags": [
-                    "Pengajuan"
-                ],
-                "summary": "Approve barang pengajuan",
-                "operationId": "575c5570cf4fd326690d9f7e73e2ef01",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "required": true,
-                        "schema": {
-                            "type": "integer",
-                            "example": 1
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "jumlah_disetujui"
-                                ],
-                                "properties": {
-                                    "jumlah_disetujui": {
-                                        "type": "integer",
-                                        "example": 3
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "disetujui"
-                    },
-                    "422": {
-                        "description": "jumlah melebihi permintaan"
+                        "description": "Berhasil mengambil histori pengajuan"
                     }
                 },
                 "security": [
@@ -1630,6 +1074,25 @@
                         "description": "OK"
                     }
                 }
+            }
+        },
+        "/api/pengajuan": {
+            "get": {
+                "tags": [
+                    "Pengajuan"
+                ],
+                "summary": "List master tipe pengajuan",
+                "operationId": "9f3d6f13e0d2dcd2baf82fae47badacd",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil ambil data pengajuan"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/unit-types": {
@@ -2150,22 +1613,18 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name"
+                                    "nama"
                                 ],
                                 "properties": {
-                                    "name": {
+                                    "nama": {
                                         "type": "string",
                                         "example": "PT Sumber Makmur"
                                     },
-                                    "email": {
+                                    "kontak_person": {
                                         "type": "string",
-                                        "example": "vendor@email.com"
+                                        "example": "Budi Santoso"
                                     },
-                                    "phone": {
-                                        "type": "string",
-                                        "example": "08123456789"
-                                    },
-                                    "address": {
+                                    "alamat": {
                                         "type": "string",
                                         "example": "Bandung"
                                     }
@@ -2241,19 +1700,15 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "name": {
+                                    "nama": {
                                         "type": "string",
                                         "example": "PT Sumber Makmur Update"
                                     },
-                                    "email": {
+                                    "kontak_person": {
                                         "type": "string",
-                                        "example": "vendorbaru@email.com"
+                                        "example": "Budi Santoso Update"
                                     },
-                                    "phone": {
-                                        "type": "string",
-                                        "example": "081298765432"
-                                    },
-                                    "address": {
+                                    "alamat": {
                                         "type": "string",
                                         "example": "Jakarta"
                                     }
@@ -2331,10 +1786,6 @@
         {
             "name": "Barang",
             "description": "Barang"
-        },
-        {
-            "name": "Barang Pengajuan",
-            "description": "Barang Pengajuan"
         },
         {
             "name": "Barang Pengajuan Lainnya",
