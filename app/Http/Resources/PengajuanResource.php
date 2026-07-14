@@ -47,10 +47,10 @@ class PengajuanResource extends JsonResource
             'barang' => $this->barang->map(function ($item) {
                 return [
                     'id' => $item->id,
-                    'nama_barang' => $item->barang->nama,
-                    'kategori' => $item->barang->kategori,
-                    'unit' => $item->barang->unit,
-                    'vendor' => $item->barang->vendor->nama,
+                    'nama_barang' => $item->barang?->nama,
+                    'kategori' => $item->barang?->kategori,
+                    'unit' => $item->barang?->unit,
+                    'vendor' => $item->barang?->vendor?->nama,
                     'jumlah_diajukan' => $item->jumlah,
                     'jumlah_disetujui' => $item->jumlah_disetujui,
                     'status' => $item->status,
