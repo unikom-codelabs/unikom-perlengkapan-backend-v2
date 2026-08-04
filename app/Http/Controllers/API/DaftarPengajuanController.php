@@ -307,11 +307,15 @@ class DaftarPengajuanController extends Controller
 
         if ($tipe) {
 
-            $query->whereHas('aktivasi.pengajuan', function ($q) use ($tipe) {
-
-                $q->where('tipe', $tipe);
-
-            });
+            if (in_array($tipe, ['rutin', 'nonrutin'])) {
+                $query->whereHas('aktivasi', function ($q) use ($tipe) {
+                    $q->where('tipe', $tipe);
+                });
+            } else {
+                $query->whereHas('aktivasi.pengajuan', function ($q) use ($tipe) {
+                    $q->where('tipe', $tipe);
+                });
+            }
         }
 
         if ($status !== null) {
@@ -340,5 +344,49 @@ class DaftarPengajuanController extends Controller
             'List pengajuan admin'
 
         );
+    }
+
+    public function adminAktivasi(Request $request)
+    {
+        $jabatan = $request->jabatan_id;
+        $bagian = $request->bagian_id;
+        $tipe = $request->tipe;
+
+        $query = DaftarPengajuan::with([
+            'aktivasi.pengajuan',
+        ]);
+
+        if ($jabatan) {
+            $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
+                $q->where('id', $jabatan);
+            });
+        }
+
+        if ($bagian) {
+            $query->whereHas('user.unit', function ($q) use ($bagian) {
+                $q->where('id', $bagian);
+            });
+        }
+
+        if ($tipe) {
+            if (in_array($tipe, ['rutin', 'nonrutin'])) {
+                $query->whereHas('aktivasi', function ($q) use ($tipe) {
+                    $q->where('tipe', $tipe);
+                });
+            } else {
+                $query->whereHas('aktivasi.pengajuan', function ($q) use ($tipe) {
+                    $q->where('tipe', $tipe);
+                });
+            }
+        }
+
+        $aktivasiIds = $query->distinct()->pluck('id_aktivasi')->filter();
+
+        $aktivasiList = AktivasiPengajuan::with('pengajuan')
+            ->whereIn('id', $aktivasiIds)
+            ->latest()
+            ->get();
+
+        return \App\Http\Resources\AktivasiPengajuanResource::collection($aktivasiList);
     }
 }
