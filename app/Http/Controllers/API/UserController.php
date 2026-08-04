@@ -52,6 +52,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'username' => 'required',
+            'nama' => 'nullable|string',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'nip' => 'nullable',
@@ -80,6 +81,7 @@ class UserController extends Controller
 
         $validated = $request->validate([
             'username' => 'sometimes',
+            'nama' => 'sometimes|string',
             'email' => "sometimes|email|unique:users,email,$id",
             'nip' => 'sometimes',
             'jenis_kelamin' => 'sometimes|in:Pria,Wanita',

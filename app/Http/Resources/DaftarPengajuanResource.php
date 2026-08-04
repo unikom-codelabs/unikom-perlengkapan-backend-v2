@@ -14,7 +14,7 @@ class DaftarPengajuanResource extends JsonResource
 
             'user' => [
                 'id' => $this->user?->id,
-                'nama' => $this->user?->username,
+                'nama' => $this->user?->nama ?? $this->user?->username,
                 'nip' => $this->user?->nip,
                 'jabatan' => $this->user?->jabatan?->nama,
                 'unit' => $this->user?->unit?->nama,
