@@ -21,11 +21,15 @@ class VendorController extends Controller
         );
     }
 
-    public function rekapVendor()
+    public function rekapVendor(\Illuminate\Http\Request $request)
     {
-        $aktivasiIds = \App\Models\AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
-            ->whereDate('aktif_selesai', '>=', now())
-            ->pluck('id');
+        if ($request->has('id_aktivasi')) {
+            $aktivasiIds = [$request->id_aktivasi];
+        } else {
+            $aktivasiIds = \App\Models\AktivasiPengajuan::whereDate('aktif_mulai', '<=', now())
+                ->whereDate('aktif_selesai', '>=', now())
+                ->pluck('id');
+        }
 
         $vendors = Vendor::with(['barang' => function ($query) use ($aktivasiIds) {
             $filter = function ($q) use ($aktivasiIds) {
