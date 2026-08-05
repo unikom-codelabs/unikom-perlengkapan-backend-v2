@@ -33,8 +33,7 @@ class VendorController extends Controller
 
         $vendors = Vendor::with(['barang' => function ($query) use ($aktivasiIds) {
             $filter = function ($q) use ($aktivasiIds) {
-                $q->where('status', 1)
-                  ->whereHas('daftarPengajuan', function ($dp) use ($aktivasiIds) {
+                $q->whereHas('daftarPengajuan', function ($dp) use ($aktivasiIds) {
                       $dp->whereIn('id_aktivasi', $aktivasiIds);
                   });
             };

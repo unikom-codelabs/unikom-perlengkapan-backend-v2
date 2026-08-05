@@ -88,6 +88,11 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
         [DaftarPengajuanController::class, 'adminIndex']
     );
 
+    Route::get(
+        'admin/aktivasi-pengajuan',
+        [DaftarPengajuanController::class, 'adminAktivasi']
+    );
+
     Route::patch(
         'admin/barang-pengajuan/{barangPengajuan}/approve',
         [BarangPengajuanController::class, 'approve']
