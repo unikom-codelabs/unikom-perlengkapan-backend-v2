@@ -203,11 +203,7 @@ class UserController extends Controller
 
         foreach ($groups as $groupName => $items) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | ROOT TREE
-            |--------------------------------------------------------------------------
-            */
+            
             $rootName = strtoupper($groupName);
 
             if (! isset($unitCache[$rootName])) {
@@ -226,11 +222,7 @@ class UserController extends Controller
                 $nip = $item['nip'] ?? null;
                 $email = $item['email'] ?? null;
 
-                /*
-                |--------------------------------------------------------------------------
-                | JANGAN SKIP JABATAN NULL
-                |--------------------------------------------------------------------------
-                */
+                
                 $namaJabatan = $item['nama_jabatan'] ?? '-';
 
                 if (! $nama || ! $nip) {
@@ -243,22 +235,14 @@ class UserController extends Controller
                     ($item['gelar_belakang'] ?? '')
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | UNIT ASLI API
-                |--------------------------------------------------------------------------
-                */
+                
                 $unitName =
                     $item['unit']
                     ?? $item['program_studi']
                     ?? $item['fakultas']
                     ?? 'LAINNYA';
 
-                /*
-                |--------------------------------------------------------------------------
-                | LEVEL 2
-                |--------------------------------------------------------------------------
-                */
+                
                 $secondKey = $rootId.'_'.$unitName;
 
                 if (! isset($unitCache[$secondKey])) {
@@ -271,11 +255,7 @@ class UserController extends Controller
 
                 $unitId = $unitCache[$secondKey];
 
-                /*
-                |--------------------------------------------------------------------------
-                | JABATAN ASLI API
-                |--------------------------------------------------------------------------
-                */
+                
                 if (! isset($jabatanCache[$namaJabatan])) {
 
                     $jabatanCache[$namaJabatan] = Jabatan::create([
@@ -283,37 +263,21 @@ class UserController extends Controller
                     ])->id;
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | INSERT SESUAI API ASLI
-                |--------------------------------------------------------------------------
-                */
+                
                 $usersToInsert[] = [
                     'username' => substr($username, 0, 255),
                     'nip' => $nip,
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | kalau email null tetap simpan unique dummy
-                    |--------------------------------------------------------------------------
-                    */
+                    
                     'email' => $email
                         ?: strtolower(str_replace(' ', '', $nip.'_'.md5($namaJabatan))).'@null.unikom',
 
                     'jenis_kelamin' => 'Pria',
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | JABATAN ASLI JANGAN DIMAPPING LAGI
-                    |--------------------------------------------------------------------------
-                    */
+                    
                     'jabatan_id' => $jabatanCache[$namaJabatan],
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | UNIT SESUAI API
-                    |--------------------------------------------------------------------------
-                    */
+                    
                     'unit_id' => $unitId,
 
                     'role' => 'user',
@@ -325,11 +289,7 @@ class UserController extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | INSERT TANPA NIMPA DATA ORANG LAIN
-        |--------------------------------------------------------------------------
-        */
+        
         foreach (array_chunk($usersToInsert, 500) as $chunk) {
 
             DB::table('users')->insert($chunk);

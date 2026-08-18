@@ -12,7 +12,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         if (!Auth::attempt($request->validated())) {
-            return ApiResponse::error('username atau password salah', 401);
+            return ApiResponse::error('Username atau password salah.', 401);
         }
 
         $user = Auth::user()->load(['jabatan', 'unit']);

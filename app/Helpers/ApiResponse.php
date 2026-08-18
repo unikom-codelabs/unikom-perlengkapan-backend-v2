@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-//Helper AI API RESPONSE
+
 
 class ApiResponse
 {

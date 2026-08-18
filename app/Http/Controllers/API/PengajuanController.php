@@ -43,7 +43,7 @@ class PengajuanController extends Controller
             'barangLainnya',
         ])->where('id', $id);
 
-        // 🔒 proteksi akses
+        
         if (auth()->user()->role !== 'admin') {
             $query->where('user_id', auth()->id());
         }
@@ -89,19 +89,19 @@ class PengajuanController extends Controller
             'barangLainnya',
         ]);
 
-        // Filter Aktivasi
+        
         if ($aktivasi) {
             $query->where('id_aktivasi', $aktivasi);
         }
 
-        // Filter Jabatan
+        
         if ($jabatan) {
             $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
                 $q->where('id', $jabatan);
             });
         }
 
-        // Filter Unit / Bagian
+        
         if ($bagian) {
             $query->whereHas('user.unit', function ($q) use ($bagian) {
                 $q->where('id', $bagian);
@@ -130,7 +130,7 @@ class PengajuanController extends Controller
         ])
             ->where('user_id', auth()->id());
 
-        // Filter tahun
+        
         if ($tahun) {
             $query->whereYear('date', $tahun);
         }

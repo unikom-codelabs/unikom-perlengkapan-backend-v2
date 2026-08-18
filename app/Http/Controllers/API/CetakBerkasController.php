@@ -32,11 +32,7 @@ class CetakBerkasController extends Controller
         ->where('id_aktivasi', $aktivasi)
         ->whereYear('created_at', $tahun);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Filter Tipe Aktivasi
-        |--------------------------------------------------------------------------
-        */
+        
         if ($tipe) {
 
             $query->whereHas('aktivasi', function ($q) use ($tipe) {

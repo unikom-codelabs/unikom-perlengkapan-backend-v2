@@ -16,6 +16,70 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->renderable(function (\Throwable $e, $request) {
+            if ($request->is('api/*')) {
+                if ($e instanceof \Illuminate\Http\Exceptions\PostTooLargeException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Ukuran file terlalu besar. Maksimal pengunggahan tidak boleh melebihi batas server.',
+                    ], 413);
+                }
+
+                if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda belum login atau sesi telah berakhir.'
+                    ], 401);
+                }
+
+                if ($e instanceof \Illuminate\Auth\Access\AuthorizationException || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Anda tidak memiliki akses untuk melakukan tindakan ini.'
+                    ], 403);
+                }
+
+                if ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Data tidak ditemukan.'
+                    ], 404);
+                }
+
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Alamat atau rute tidak ditemukan.'
+                    ], 404);
+                }
+
+                if ($e instanceof \Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Metode permintaan tidak didukung.'
+                    ], 405);
+                }
+
+                if ($e instanceof \Illuminate\Validation\ValidationException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $e->getMessage(),
+                        'errors' => $e->errors()
+                    ], 422);
+                }
+
+                if ($e instanceof \Illuminate\Database\QueryException || $e instanceof \PDOException) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Terjadi kesalahan pada database sistem. Silakan coba lagi.'
+                    ], 500);
+                }
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan pada server. Silakan hubungi administrator atau coba lagi nanti.'
+                ], 500);
+            }
+        });
     })->create();

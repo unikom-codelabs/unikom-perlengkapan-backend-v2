@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class DaftarPengajuanController extends Controller
 {
-    //daftar_pengajuan
+    
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
         \Illuminate\Support\Facades\Log::info('StoreFull Request Debug', [
@@ -114,7 +114,7 @@ class DaftarPengajuanController extends Controller
             foreach ($data['barang_lainnya'] ?? [] as $index => $item) {
 
                 $buktiFotoPath = null;
-                // Form-data with files may place the file directly in the array or in request->file()
+                
                 if (isset($item['bukti_foto']) && $item['bukti_foto'] instanceof \Illuminate\Http\UploadedFile) {
                     $buktiFotoPath = $item['bukti_foto']->store('bukti_foto_pengajuan', 'public');
                 } elseif ($request->hasFile("barang_lainnya.{$index}.bukti_foto")) {
@@ -151,6 +151,14 @@ class DaftarPengajuanController extends Controller
         } catch (\Exception $e) {
 
             DB::rollBack();
+
+            if (isset($pengajuan) && $pengajuan->exists) {
+                try {
+                    $pengajuan->delete();
+                } catch (\Exception $deleteEx) {
+                    
+                }
+            }
 
             return ApiResponse::error(
                 $e->getMessage(),

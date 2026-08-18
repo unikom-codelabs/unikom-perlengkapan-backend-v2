@@ -11,9 +11,7 @@ use Illuminate\Console\Command;
 #[Description('Command description')]
 class SyncUsers extends Command
 {
-    /**
-     * Execute the console command.
-     */
+    
     public function handle()
     {
         app(UserController::class)->syncFromApi();

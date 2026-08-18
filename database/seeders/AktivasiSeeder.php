@@ -15,7 +15,7 @@ class AktivasiSeeder extends Seeder
 
         $pengajuanIds = \App\Models\Pengajuan::pluck('id', 'tipe');
 
-        // Aktivasi untuk kelas ganjil (id_pengajuan: kelas ganjil)
+        
         if ($pengajuanIds->has('kelas')) {
             AktivasiPengajuan::firstOrCreate(
                 ['id_pengajuan' => $pengajuanIds['kelas'], 'tahun_akademik' => $tahunAkademik],
@@ -28,7 +28,7 @@ class AktivasiSeeder extends Seeder
             );
         }
 
-        // Aktivasi untuk ujian (ambil yang pertama bertipe ujian)
+        
         if ($pengajuanIds->has('ujian')) {
             AktivasiPengajuan::firstOrCreate(
                 ['id_pengajuan' => $pengajuanIds['ujian'], 'tahun_akademik' => $tahunAkademik],
@@ -41,7 +41,7 @@ class AktivasiSeeder extends Seeder
             );
         }
 
-        // Aktivasi untuk tahunan
+        
         if ($pengajuanIds->has('tahunan')) {
             AktivasiPengajuan::firstOrCreate(
                 ['id_pengajuan' => $pengajuanIds['tahunan'], 'tahun_akademik' => $tahunAkademik],
@@ -54,7 +54,7 @@ class AktivasiSeeder extends Seeder
             );
         }
 
-        // Aktivasi untuk nonrutin
+        
         if ($pengajuanIds->has('nonrutin')) {
             AktivasiPengajuan::firstOrCreate(
                 ['id_pengajuan' => $pengajuanIds['nonrutin'], 'tahun_akademik' => $tahunAkademik],

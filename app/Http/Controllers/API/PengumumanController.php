@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Helpers\ApiResponse;
+use App\Helpers\HtmlSanitizer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pengumuman\StorePengumumanRequest;
 use App\Http\Requests\Pengumuman\UpdatePengumumanRequest;
@@ -23,6 +24,10 @@ class PengumumanController extends Controller
     public function store(StorePengumumanRequest $request)
     {
         $data = $request->validated();
+
+        
+        $data['judul'] = HtmlSanitizer::stripAll($data['judul'] ?? '');
+        $data['teks']  = HtmlSanitizer::sanitize($data['teks'] ?? '');
 
         if ($request->hasFile('gambar')) {
 
@@ -53,6 +58,14 @@ class PengumumanController extends Controller
     public function update(UpdatePengumumanRequest $request, Pengumuman $pengumuman)
     {
         $data = $request->validated();
+
+        
+        if (array_key_exists('judul', $data)) {
+            $data['judul'] = HtmlSanitizer::stripAll($data['judul']);
+        }
+        if (array_key_exists('teks', $data)) {
+            $data['teks'] = HtmlSanitizer::sanitize($data['teks']);
+        }
 
         if ($request->hasFile('gambar')) {
 

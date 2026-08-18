@@ -151,7 +151,7 @@ class AktivasiController extends Controller
 
                 return [
 
-                    // FIX
+                    
                     'nama' => $user->username,
 
                     'unit' => $user->unit?->nama ?? '-',
@@ -167,10 +167,10 @@ class AktivasiController extends Controller
 
                             return [
 
-                                // FIX
+                                
                                 'nama_barang' => $item->barang?->nama ?? '-',
 
-                                // FIX
+                                
                                 'qty' => $item->jumlah ?? 0,
 
                                 'jumlah_disetujui' => $item->jumlah_disetujui ?? 0,

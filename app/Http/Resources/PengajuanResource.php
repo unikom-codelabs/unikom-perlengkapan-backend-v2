@@ -9,7 +9,7 @@ class PengajuanResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        //Pengajuan
+        
         return [
 
             'id' => $this->id,

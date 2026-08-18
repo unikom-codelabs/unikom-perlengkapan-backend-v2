@@ -22,6 +22,36 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
         ]);
     }
 
+    
+    protected function passedValidation()
+    {
+        $barang = $this->input('barang', []);
+        $barangLainnya = $this->input('barang_lainnya', []);
+
+        if (is_array($barang)) {
+            foreach ($barang as &$item) {
+                if (isset($item['jumlah'])) {
+                    $item['jumlah'] = (int) $item['jumlah'];
+                }
+            }
+            unset($item);
+        }
+
+        if (is_array($barangLainnya)) {
+            foreach ($barangLainnya as &$item) {
+                if (isset($item['jumlah'])) {
+                    $item['jumlah'] = (int) $item['jumlah'];
+                }
+            }
+            unset($item);
+        }
+
+        $this->merge([
+            'barang' => $barang,
+            'barang_lainnya' => $barangLainnya,
+        ]);
+    }
+
     public function rules(): array
     {
         return [
@@ -51,8 +81,10 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
 
             'barang.*.jumlah' => [
                 'required',
+                'numeric',
                 'integer',
                 'min:1',
+                'max:2147483647',
             ],
 
             'barang_lainnya' => [
@@ -68,8 +100,10 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
 
             'barang_lainnya.*.jumlah' => [
                 'required',
+                'numeric',
                 'integer',
                 'min:1',
+                'max:2147483647',
             ],
 
             'barang_lainnya.*.kategori' => [
@@ -114,6 +148,14 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             'barang.*.id_barang.required' => 'Barang wajib dipilih.',
             'barang.*.id_barang.exists' => 'Barang tidak ditemukan.',
             'barang.*.jumlah.min' => 'Jumlah minimal 1.',
+            'barang.*.jumlah.max' => 'Jumlah maksimal 2.147.483.647.',
+            'barang.*.jumlah.integer' => 'Jumlah harus berupa bilangan bulat.',
+            'barang.*.jumlah.numeric' => 'Jumlah harus berupa angka yang valid.',
+
+            'barang_lainnya.*.jumlah.min' => 'Jumlah minimal 1.',
+            'barang_lainnya.*.jumlah.max' => 'Jumlah maksimal 2.147.483.647.',
+            'barang_lainnya.*.jumlah.integer' => 'Jumlah harus berupa bilangan bulat.',
+            'barang_lainnya.*.jumlah.numeric' => 'Jumlah harus berupa angka yang valid.',
 
             'barang_lainnya.*.kategori.in' => 'Kategori harus habis pakai atau tidak habis pakai.',
         ];
