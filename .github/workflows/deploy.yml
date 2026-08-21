@@ -22,12 +22,11 @@ jobs:
             # Fix DNS Resolution Issue on the server
             echo "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf > /dev/null || true
 
-            cd /var/www/html/unikom-perlengkapan-backend-v2
+            cd ${{ secrets.DEPLOY_PATH }}
 
             git fetch origin dev
             git reset --hard origin/dev
 
             composer install --no-dev --optimize-autoloader
             php artisan migrate --force
-            php artisan db:seed --class=PengajuanSeeder --force
             php artisan optimize:clear
