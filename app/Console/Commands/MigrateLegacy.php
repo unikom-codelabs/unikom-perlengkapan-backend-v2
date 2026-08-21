@@ -111,6 +111,10 @@ class MigrateLegacy extends Command
 
         $dryRun = $this->option('dry-run');
 
+        // Data lama memakai id 0 (mis. pengajuan#0). Tanpa ini MySQL menukarnya
+        // dengan nilai auto-increment berikutnya, lalu baris id 1 ikut bentrok.
+        DB::statement("SET SESSION sql_mode = CONCAT(@@SESSION.sql_mode, ',NO_AUTO_VALUE_ON_ZERO')");
+
         DB::beginTransaction();
         Schema::disableForeignKeyConstraints();
 
