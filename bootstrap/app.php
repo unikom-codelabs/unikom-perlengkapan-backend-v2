@@ -15,6 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
+
+        // API-only: tidak ada route 'login' untuk dituju. Tanpa ini middleware
+        // auth melempar RouteNotFoundException dan permintaan tanpa token
+        // dijawab 500, bukan 401 seperti yang ditangani di withExceptions.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->renderable(function (\Throwable $e, $request) {
