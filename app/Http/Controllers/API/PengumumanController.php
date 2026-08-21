@@ -9,15 +9,18 @@ use App\Http\Requests\Pengumuman\StorePengumumanRequest;
 use App\Http\Requests\Pengumuman\UpdatePengumumanRequest;
 use App\Http\Resources\PengumumanResource;
 use App\Models\Pengumuman;
+use Illuminate\Support\Facades\Cache;
 
 class PengumumanController extends Controller
 {
     public function index()
     {
+        $pengumuman = Cache::remember('pengumuman_index', 300, function () {
+            return Pengumuman::orderBy('create_at', 'desc')->get();
+        });
+
         return ApiResponse::success(
-            PengumumanResource::collection(
-                Pengumuman::orderBy('create_at', 'desc')->get()
-            )
+            PengumumanResource::collection($pengumuman)
         );
     }
 
@@ -41,6 +44,7 @@ class PengumumanController extends Controller
         }
 
         $pengumuman = Pengumuman::create($data);
+        Cache::forget('pengumuman_index');
 
         return ApiResponse::success(
             new PengumumanResource($pengumuman),
@@ -87,6 +91,7 @@ class PengumumanController extends Controller
         }
 
         $pengumuman->update($data);
+        Cache::forget('pengumuman_index');
 
         return ApiResponse::success(
             new PengumumanResource($pengumuman),
@@ -97,6 +102,7 @@ class PengumumanController extends Controller
     public function destroy(Pengumuman $pengumuman)
     {
         $pengumuman->delete();
+        Cache::forget('pengumuman_index');
 
         return ApiResponse::deleted();
     }
