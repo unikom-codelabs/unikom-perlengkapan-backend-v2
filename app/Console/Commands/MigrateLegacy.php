@@ -29,6 +29,10 @@ class MigrateLegacy extends Command
     /** Offset id untuk tabel admin lama supaya tidak bentrok dengan users lama. */
     private const ADMIN_ID_OFFSET = 900000;
 
+    /** Induk buatan untuk baris yatim, supaya tidak ada data lama yang dibuang. */
+    private const PLACEHOLDER_USER_ID = 999999;
+    private const PLACEHOLDER_AKTIVASI_ID = 999999;
+
     private const JENIS_KELAMIN = [
         'laki-laki' => 'Pria',
         'perempuan' => 'Wanita',
@@ -360,6 +364,48 @@ class MigrateLegacy extends Command
         }
 
         $this->stats['barang'] = $count;
+
+        $count += $this->buatBarangPengganti($legacy);
+    }
+
+    /**
+     * Sebagian barang sudah dihapus dari master data lama, tapi riwayat
+     * pengajuannya masih ada. Barang pengganti dibuat supaya baris itu tetap
+     * terbawa dan foreign key-nya tetap sah.
+     */
+    private function buatBarangPengganti($legacy): int
+    {
+        $now = now();
+        $ada = DB::table('barang')->pluck('id')->flip();
+
+        $dipakai = $legacy->table('barang_pengajuan')
+            ->distinct()
+            ->pluck('id_barang')
+            ->all();
+
+        $hilang = array_values(array_filter($dipakai, fn ($id) => ! isset($ada[$id])));
+        sort($hilang);
+
+        foreach ($hilang as $id) {
+            DB::table('barang')->insert([
+                'id'         => $id,
+                'nama'       => "Barang dihapus #{$id}",
+                'kategori'   => 'atk_tahunan',
+                'tipe'       => 'habis_pakai',
+                'unit'       => '-',
+                'vendor_id'  => null,
+                'harga'      => null,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        if ($hilang !== []) {
+            $this->stats['barang (pengganti)'] = count($hilang);
+            $this->warnings[] = count($hilang) . ' barang pengganti dibuat untuk id yang sudah dihapus di sistem lama: ' . implode(', ', $hilang);
+        }
+
+        return count($hilang);
     }
 
     private function migratePengajuan($legacy): void
@@ -410,17 +456,18 @@ class MigrateLegacy extends Command
         $lewat = 0;
 
         foreach ($legacy->table('daftar_pengajuan')->orderBy('id_daftar_pengajuan')->get() as $d) {
-            if (! isset($this->userMap[$d->id_pengaju])) {
-                $this->warnings[] = "daftar_pengajuan #{$d->id_daftar_pengajuan} menunjuk pengaju #{$d->id_pengaju} yang tidak ada di users, dilewati";
-                $lewat++;
+            $user = $this->userMap[$d->id_pengaju] ?? null;
 
-                continue;
+            if ($user === null) {
+                $user = $this->pastikanUserPengganti();
+                $this->warnings[] = "daftar_pengajuan menunjuk pengaju yang tidak ada di users, dialihkan ke user pengganti";
+                $lewat++;
             }
 
             DB::table('daftar_pengajuan')->insert([
                 'id'              => $d->id_daftar_pengajuan,
                 'id_aktivasi'     => $d->id_aktivasi,
-                'user_id'         => $this->userMap[$d->id_pengaju],
+                'user_id'         => $user,
                 'date'            => $d->tanggal,
                 'surat_pengajuan' => $d->surat_permohonan ?? '',
                 'created_at'      => $now,
@@ -433,8 +480,104 @@ class MigrateLegacy extends Command
         $this->stats['daftar_pengajuan'] = $count;
 
         if ($lewat > 0) {
-            $this->stats['daftar_pengajuan (dilewati)'] = $lewat;
+            $this->stats['daftar_pengajuan (pengaju hilang)'] = $lewat;
         }
+
+        $this->buatDaftarPengganti($legacy);
+    }
+
+    /** User buatan untuk menampung baris yang induknya sudah tidak ada. */
+    private function pastikanUserPengganti(): int
+    {
+        if (DB::table('users')->where('id', self::PLACEHOLDER_USER_ID)->exists()) {
+            return self::PLACEHOLDER_USER_ID;
+        }
+
+        $now = now();
+
+        DB::table('users')->insert([
+            'id'            => self::PLACEHOLDER_USER_ID,
+            'nip'           => null,
+            'nama'          => 'Pengguna Tidak Dikenal (data lama)',
+            'username'      => 'pengguna-tidak-dikenal',
+            'email'         => 'pengguna-tidak-dikenal@unikom.ac.id',
+            'password'      => '',
+            'jenis_kelamin' => 'Pria',
+            'foto'          => null,
+            'jabatan_id'    => 1,
+            'unit_id'       => DB::table('unit_types')->min('id'),
+            'role'          => 'user',
+            'created_at'    => $now,
+            'updated_at'    => $now,
+        ]);
+
+        $this->stats['users (pengganti)'] = 1;
+
+        return self::PLACEHOLDER_USER_ID;
+    }
+
+    /**
+     * Sebagian barang_pengajuan menunjuk daftar_pengajuan yang sudah tidak ada.
+     * Daftar pengganti dibuat supaya baris itu tetap terbawa.
+     */
+    private function buatDaftarPengganti($legacy): void
+    {
+        $ada = DB::table('daftar_pengajuan')->pluck('id')->flip();
+
+        $dipakai = array_merge(
+            $legacy->table('barang_pengajuan')->distinct()->pluck('id_daftar_pengajuan')->all(),
+            $legacy->table('barang_pengajuan_lainnya')->distinct()->pluck('id_daftar_pengajuan')->all(),
+        );
+
+        $hilang = array_values(array_unique(array_filter($dipakai, fn ($id) => ! isset($ada[$id]))));
+        sort($hilang);
+
+        if ($hilang === []) {
+            return;
+        }
+
+        $now = now();
+        $aktivasi = $this->pastikanAktivasiPengganti();
+        $user = $this->pastikanUserPengganti();
+
+        foreach ($hilang as $id) {
+            DB::table('daftar_pengajuan')->insert([
+                'id'              => $id,
+                'id_aktivasi'     => $aktivasi,
+                'user_id'         => $user,
+                'date'            => $now,
+                'surat_pengajuan' => '',
+                'created_at'      => $now,
+                'updated_at'      => $now,
+            ]);
+        }
+
+        $this->stats['daftar_pengajuan (pengganti)'] = count($hilang);
+        $this->warnings[] = count($hilang) . ' daftar_pengajuan pengganti dibuat untuk id yang sudah tidak ada di sistem lama: ' . implode(', ', $hilang);
+    }
+
+    private function pastikanAktivasiPengganti(): int
+    {
+        if (DB::table('aktivasi_pengajuan')->where('id', self::PLACEHOLDER_AKTIVASI_ID)->exists()) {
+            return self::PLACEHOLDER_AKTIVASI_ID;
+        }
+
+        $now = now();
+
+        DB::table('aktivasi_pengajuan')->insert([
+            'id'             => self::PLACEHOLDER_AKTIVASI_ID,
+            'id_pengajuan'   => DB::table('pengajuan')->min('id'),
+            'aktif_mulai'    => $now->toDateString(),
+            'aktif_selesai'  => $now->toDateString(),
+            'tipe'           => 'nonrutin',
+            'tahun_akademik' => 'data lama',
+            'created_at'     => $now,
+            'updated_at'     => $now,
+        ]);
+
+        $this->stats['aktivasi_pengajuan (pengganti)'] = 1;
+
+        return self::PLACEHOLDER_AKTIVASI_ID;
     }
 
     private function migrateBarangPengajuan($legacy): void
