@@ -13,6 +13,8 @@ use App\Models\DaftarPengajuan;
 use App\Models\User;
 use Illuminate\Http\Request;
 
+
+//sudah pake Cache
 class AktivasiController extends Controller
 {
     public function index(Request $request)
