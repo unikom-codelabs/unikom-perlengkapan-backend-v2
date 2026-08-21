@@ -152,7 +152,7 @@ class AktivasiController extends Controller
                 return [
 
                     
-                    'nama' => $user->username,
+                    'nama' => $user->nama,
 
                     'unit' => $user->unit?->nama ?? '-',
 
