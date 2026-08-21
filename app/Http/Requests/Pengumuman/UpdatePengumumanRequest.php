@@ -12,7 +12,17 @@ class UpdatePengumumanRequest extends FormRequest
         return [
             'judul' => 'sometimes|string|max:255',
             'teks' => 'sometimes|string',
-            'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:10048'
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'judul.max' => 'Judul pengumuman maksimal 255 karakter.',
+            'gambar.image' => 'File harus berupa gambar.',
+            'gambar.mimes' => 'Gambar harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'gambar.max' => 'Ukuran gambar maksimal 2MB.',
         ];
     }
 }

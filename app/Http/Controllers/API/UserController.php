@@ -143,6 +143,10 @@ class UserController extends Controller
         $validated = $request->validate([
             'username' => 'sometimes',
             'foto' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048',
+        ], [
+            'foto.image' => 'File harus berupa gambar.',
+            'foto.mimes' => 'Foto profil harus berformat JPG, JPEG, atau PNG.',
+            'foto.max' => 'Ukuran foto profil maksimal 2MB.',
         ]);
 
         if ($request->hasFile('foto')) {

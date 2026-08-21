@@ -23,7 +23,7 @@ class UpdateDaftarPengajuanRequest extends FormRequest
             'surat_pengajuan' => [
                 'sometimes',
                 'file',
-                'mimes:pdf,doc,docx',
+                'mimes:pdf',
                 'max:2048'
             ]
 
@@ -36,8 +36,9 @@ class UpdateDaftarPengajuanRequest extends FormRequest
 
             'date.date' => 'Format tanggal tidak valid.',
 
-            'surat_pengajuan.mimes' => 'File harus berupa PDF, DOC, atau DOCX.',
-            'surat_pengajuan.max' => 'Ukuran file maksimal 2MB.'
+            'surat_pengajuan.file' => 'Surat pengajuan harus berupa file.',
+            'surat_pengajuan.mimes' => 'Surat pengajuan harus berformat PDF.',
+            'surat_pengajuan.max' => 'Ukuran surat pengajuan maksimal 2MB.'
 
         ];
     }

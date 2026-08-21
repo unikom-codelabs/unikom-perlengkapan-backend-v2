@@ -65,7 +65,7 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             'surat_pengajuan' => [
                 'nullable',
                 'file',
-                'mimes:pdf,doc,docx',
+                'mimes:pdf',
                 'max:2048',
             ],
 
@@ -158,6 +158,14 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             'barang_lainnya.*.jumlah.numeric' => 'Jumlah harus berupa angka yang valid.',
 
             'barang_lainnya.*.kategori.in' => 'Kategori harus habis pakai atau tidak habis pakai.',
+
+            'surat_pengajuan.file' => 'Surat pengajuan harus berupa file.',
+            'surat_pengajuan.mimes' => 'Surat pengajuan harus berformat PDF.',
+            'surat_pengajuan.max' => 'Ukuran surat pengajuan maksimal 2MB.',
+
+            'barang_lainnya.*.bukti_foto.file' => 'Bukti foto harus berupa file.',
+            'barang_lainnya.*.bukti_foto.mimes' => 'Bukti foto harus berformat JPG, JPEG, atau PNG.',
+            'barang_lainnya.*.bukti_foto.max' => 'Ukuran bukti foto maksimal 2MB.',
         ];
     }
 }
