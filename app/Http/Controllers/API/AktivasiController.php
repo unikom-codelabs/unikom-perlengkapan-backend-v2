@@ -11,6 +11,7 @@ use App\Http\Resources\BarangPengajuanLainnyaResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
 use App\Models\User;
+use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
 
 
@@ -44,6 +45,8 @@ class AktivasiController extends Controller
             $request->validated()
         );
 
+        PengajuanCache::flush();
+
         return new AktivasiPengajuanResource(
 
             $aktivasi->load('pengajuan')
@@ -69,6 +72,8 @@ class AktivasiController extends Controller
             $request->validated()
         );
 
+        PengajuanCache::flush();
+
         return new AktivasiPengajuanResource(
 
             $aktivasiPengajuan->load('pengajuan')
@@ -79,6 +84,8 @@ class AktivasiController extends Controller
     {
 
         $aktivasiPengajuan->delete();
+
+        PengajuanCache::flush();
 
         return response()->json([
 

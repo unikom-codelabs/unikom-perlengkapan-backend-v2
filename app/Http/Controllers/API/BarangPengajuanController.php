@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BarangPengajuanResource;
 use App\Models\BarangPengajuan;
+use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
 
 class BarangPengajuanController extends Controller
@@ -34,6 +35,8 @@ class BarangPengajuanController extends Controller
             'status' => $validated['status'],
 
         ]);
+
+        PengajuanCache::flush();
 
         return ApiResponse::success(
             new BarangPengajuanResource($barangPengajuan->load('barang'))

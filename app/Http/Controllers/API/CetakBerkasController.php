@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\DaftarPengajuan;
+use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
 
 class CetakBerkasController extends Controller
@@ -23,6 +24,20 @@ class CetakBerkasController extends Controller
         $tipe = $request->tipe;
         $kategoriAtk = $request->kategori_atk;
 
+        $hasil = PengajuanCache::remember('cetak-berkas', [
+            'tahun'        => $tahun,
+            'aktivasi'     => $aktivasi,
+            'tipe'         => $tipe,
+            'kategori_atk' => $kategoriAtk,
+        ], function () use ($tahun, $aktivasi, $tipe, $kategoriAtk) {
+            return $this->rakit($tahun, $aktivasi, $tipe, $kategoriAtk);
+        });
+
+        return ApiResponse::success($hasil);
+    }
+
+    private function rakit($tahun, $aktivasi, $tipe, $kategoriAtk): array
+    {
         $query = DaftarPengajuan::with([
             'aktivasi',
             'aktivasi.pengajuan',
@@ -87,7 +102,7 @@ class CetakBerkasController extends Controller
             }
         }
 
-        return ApiResponse::success([
+        return [
             'tahun'                     => $tahun,
             'id_aktivasi'               => $aktivasi,
             'tipe'                      => $tipe,
@@ -99,9 +114,9 @@ class CetakBerkasController extends Controller
 
                 $barangPengajuanLainnya->sum('subtotal'),
 
-            'barang_pengajuan'          => $barangPengajuan->values(),
+            'barang_pengajuan'          => $barangPengajuan->values()->all(),
 
-            'barang_pengajuan_lainnya'  => $barangPengajuanLainnya->values(),
-        ]);
+            'barang_pengajuan_lainnya'  => $barangPengajuanLainnya->values()->all(),
+        ];
     }
 }

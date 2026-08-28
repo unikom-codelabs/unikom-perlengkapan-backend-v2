@@ -7,25 +7,35 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\PengajuanResource;
 use App\Models\DaftarPengajuan;
 use App\Models\Jabatan;
+use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
 
 class PengajuanController extends Controller
 {
-    public function index()
+    private const RELASI = [
+        'user.jabatan',
+        'user.unit',
+        'aktivasi.pengajuan',
+        'barang.barang.vendor',
+        'barangLainnya',
+    ];
+
+    public function index(Request $request)
     {
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ]);
+        $isAdmin = auth()->user()->role === 'admin';
 
-        if (auth()->user()->role !== 'admin') {
-            $query->where('user_id', auth()->id());
-        }
+        $data = PengajuanCache::remember('index', [
+            'user'  => $isAdmin ? 'admin' : auth()->id(),
+            'page'  => $request->integer('page', 1),
+        ], function () use ($isAdmin) {
+            $query = DaftarPengajuan::with(self::RELASI);
 
-        $data = $query->latest()->paginate(10);
+            if (! $isAdmin) {
+                $query->where('user_id', auth()->id());
+            }
+
+            return $query->latest()->paginate(10);
+        });
 
         return ApiResponse::success(
             PengajuanResource::collection($data),
@@ -35,13 +45,7 @@ class PengajuanController extends Controller
 
     public function show($id)
     {
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ])->where('id', $id);
+        $query = DaftarPengajuan::with(self::RELASI)->where('id', $id);
 
         
         if (auth()->user()->role !== 'admin') {
@@ -58,16 +62,14 @@ class PengajuanController extends Controller
 
     public function my()
     {
-        $data = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ])
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->get();
+        $data = PengajuanCache::remember('my', [
+            'user' => auth()->id(),
+        ], function () {
+            return DaftarPengajuan::with(self::RELASI)
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->get();
+        });
 
         return ApiResponse::success(
             PengajuanResource::collection($data),
@@ -81,34 +83,34 @@ class PengajuanController extends Controller
         $jabatan = $request->jabatan_id;
         $bagian = $request->bagian_id;
 
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ]);
+        $data = PengajuanCache::remember('histori', [
+            'aktivasi' => $aktivasi,
+            'jabatan'  => $jabatan,
+            'bagian'   => $bagian,
+        ], function () use ($aktivasi, $jabatan, $bagian) {
+            $query = DaftarPengajuan::with(self::RELASI);
 
-        
-        if ($aktivasi) {
-            $query->where('id_aktivasi', $aktivasi);
-        }
+            
+            if ($aktivasi) {
+                $query->where('id_aktivasi', $aktivasi);
+            }
 
-        
-        if ($jabatan) {
-            $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
-                $q->where('id', $jabatan);
-            });
-        }
+            
+            if ($jabatan) {
+                $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
+                    $q->where('id', $jabatan);
+                });
+            }
 
-        
-        if ($bagian) {
-            $query->whereHas('user.unit', function ($q) use ($bagian) {
-                $q->where('id', $bagian);
-            });
-        }
+            
+            if ($bagian) {
+                $query->whereHas('user.unit', function ($q) use ($bagian) {
+                    $q->where('id', $bagian);
+                });
+            }
 
-        $data = $query->latest()->get();
+            return $query->latest()->get();
+        });
 
         return ApiResponse::success(
             PengajuanResource::collection($data),
@@ -120,22 +122,20 @@ class PengajuanController extends Controller
     {
         $tahun = $request->tahun;
 
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ])
-            ->where('user_id', auth()->id());
+        $data = PengajuanCache::remember('histori-my', [
+            'user'  => auth()->id(),
+            'tahun' => $tahun,
+        ], function () use ($tahun) {
+            $query = DaftarPengajuan::with(self::RELASI)
+                ->where('user_id', auth()->id());
 
-        
-        if ($tahun) {
-            $query->whereYear('date', $tahun);
-        }
+            
+            if ($tahun) {
+                $query->whereYear('date', $tahun);
+            }
 
-        $data = $query->latest()->get();
+            return $query->latest()->get();
+        });
 
         return ApiResponse::success(
             PengajuanResource::collection($data),

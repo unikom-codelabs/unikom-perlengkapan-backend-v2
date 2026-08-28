@@ -8,6 +8,7 @@ use App\Http\Requests\Barang\StoreBarangRequest;
 use App\Http\Requests\Barang\UpdateBarangRequest;
 use App\Http\Resources\BarangResource;
 use App\Helpers\ApiResponse;
+use App\Support\PengajuanCache;
 
 class BarangController extends Controller
 {
@@ -28,6 +29,8 @@ class BarangController extends Controller
     {
         $barang = Barang::create($request->validated());
 
+        PengajuanCache::flush();
+
         return ApiResponse::success(
             new BarangResource($barang->load('vendor'))
         );
@@ -44,6 +47,8 @@ class BarangController extends Controller
     {
         $barang->update($request->validated());
 
+        PengajuanCache::flush();
+
         return ApiResponse::success(
             new BarangResource($barang->load('vendor'))
         );
@@ -52,6 +57,8 @@ class BarangController extends Controller
     public function destroy(Barang $barang)
     {
         $barang->delete();
+
+        PengajuanCache::flush();
 
         return ApiResponse::success(null, 'deleted');
     }

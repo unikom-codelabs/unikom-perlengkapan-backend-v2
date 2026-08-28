@@ -10,12 +10,21 @@ use App\Http\Requests\DaftarPengajuan\UpdateDaftarPengajuanRequest;
 use App\Http\Resources\DaftarPengajuanResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
+use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DaftarPengajuanController extends Controller
 {
-    
+    private const RELASI = [
+        'user.jabatan',
+        'user.unit',
+        'aktivasi.pengajuan',
+        'barang.barang.vendor',
+        'barangLainnya',
+    ];
+
+
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
         \Illuminate\Support\Facades\Log::info('StoreFull Request Debug', [
@@ -138,6 +147,8 @@ class DaftarPengajuanController extends Controller
 
             DB::commit();
 
+            PengajuanCache::flush();
+
             return ApiResponse::success(
                 new DaftarPengajuanResource(
                     $pengajuan->load(
@@ -169,18 +180,15 @@ class DaftarPengajuanController extends Controller
 
     public function index()
     {
+        $data = PengajuanCache::remember('daftar-index', [], function () {
+
+            return DaftarPengajuan::with(self::RELASI)->latest()->get();
+
+        });
+
         return ApiResponse::success(
 
-            DaftarPengajuanResource::collection(
-
-                DaftarPengajuan::with([
-                    'user',
-                    'aktivasi',
-                    'barang.barang',
-                    'barangLainnya',
-                ])->latest()->get()
-
-            )
+            DaftarPengajuanResource::collection($data)
 
         );
     }
@@ -216,6 +224,8 @@ class DaftarPengajuanController extends Controller
 
         $pengajuan = DaftarPengajuan::create($data);
 
+        PengajuanCache::flush();
+
         $pengajuan->load([
             'user',
             'aktivasi',
@@ -236,12 +246,7 @@ class DaftarPengajuanController extends Controller
 
             new DaftarPengajuanResource(
 
-                $daftarPengajuan->load([
-                    'user',
-                    'aktivasi',
-                    'barang.barang',
-                    'barangLainnya',
-                ])
+                $daftarPengajuan->load(self::RELASI)
 
             )
 
@@ -259,6 +264,8 @@ class DaftarPengajuanController extends Controller
 
         );
 
+        PengajuanCache::flush();
+
         return ApiResponse::success(
 
             new DaftarPengajuanResource($daftarPengajuan)
@@ -271,6 +278,8 @@ class DaftarPengajuanController extends Controller
 
         $daftarPengajuan->delete();
 
+        PengajuanCache::flush();
+
         return ApiResponse::deleted();
     }
 
@@ -282,13 +291,15 @@ class DaftarPengajuanController extends Controller
         $status = $request->status;
         $tipe = $request->tipe;
 
-        $query = DaftarPengajuan::with([
-            'user.jabatan',
-            'user.unit',
-            'aktivasi.pengajuan',
-            'barang.barang.vendor',
-            'barangLainnya',
-        ]);
+        $data = PengajuanCache::remember('daftar-admin', [
+            'aktivasi' => $aktivasi,
+            'jabatan'  => $jabatan,
+            'bagian'   => $bagian,
+            'status'   => $status,
+            'tipe'     => $tipe,
+        ], function () use ($aktivasi, $jabatan, $bagian, $status, $tipe) {
+
+        $query = DaftarPengajuan::with(self::RELASI);
 
         if ($aktivasi) {
 
@@ -343,7 +354,9 @@ class DaftarPengajuanController extends Controller
             });
         }
 
-        $data = $query->latest()->get();
+            return $query->latest()->get();
+
+        });
 
         return ApiResponse::success(
 
@@ -360,9 +373,13 @@ class DaftarPengajuanController extends Controller
         $bagian = $request->bagian_id;
         $tipe = $request->tipe;
 
-        $query = DaftarPengajuan::with([
-            'aktivasi.pengajuan',
-        ]);
+        $aktivasiList = PengajuanCache::remember('daftar-admin-aktivasi', [
+            'jabatan' => $jabatan,
+            'bagian'  => $bagian,
+            'tipe'    => $tipe,
+        ], function () use ($jabatan, $bagian, $tipe) {
+
+        $query = DaftarPengajuan::query();
 
         if ($jabatan) {
             $query->whereHas('user.jabatan', function ($q) use ($jabatan) {
@@ -390,10 +407,12 @@ class DaftarPengajuanController extends Controller
 
         $aktivasiIds = $query->distinct()->pluck('id_aktivasi')->filter();
 
-        $aktivasiList = AktivasiPengajuan::with('pengajuan')
-            ->whereIn('id', $aktivasiIds)
-            ->latest()
-            ->get();
+            return AktivasiPengajuan::with('pengajuan')
+                ->whereIn('id', $aktivasiIds)
+                ->latest()
+                ->get();
+
+        });
 
         return \App\Http\Resources\AktivasiPengajuanResource::collection($aktivasiList);
     }
