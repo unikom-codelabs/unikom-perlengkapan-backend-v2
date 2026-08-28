@@ -8,15 +8,16 @@ use App\Http\Requests\Barang\StoreBarangRequest;
 use App\Http\Requests\Barang\UpdateBarangRequest;
 use App\Http\Resources\BarangResource;
 use App\Helpers\ApiResponse;
-use Illuminate\Support\Facades\Cache;
 
 class BarangController extends Controller
 {
     public function index()
     {
-        $barang = Cache::remember('barang_index', 300, function () {
-            return Barang::with('vendor')->latest()->get();
-        });
+        $barang = Barang::query()
+            ->with('vendor:id,nama')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
 
         return ApiResponse::success(
             BarangResource::collection($barang)
@@ -26,7 +27,6 @@ class BarangController extends Controller
     public function store(StoreBarangRequest $request)
     {
         $barang = Barang::create($request->validated());
-        Cache::forget('barang_index');
 
         return ApiResponse::success(
             new BarangResource($barang->load('vendor'))
@@ -43,7 +43,6 @@ class BarangController extends Controller
     public function update(UpdateBarangRequest $request, Barang $barang)
     {
         $barang->update($request->validated());
-        Cache::forget('barang_index');
 
         return ApiResponse::success(
             new BarangResource($barang->load('vendor'))
@@ -53,7 +52,6 @@ class BarangController extends Controller
     public function destroy(Barang $barang)
     {
         $barang->delete();
-        Cache::forget('barang_index');
 
         return ApiResponse::success(null, 'deleted');
     }
