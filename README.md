@@ -1,58 +1,143 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# UNIKOM Perlengkapan — Backend v2
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+REST API untuk pengelolaan pengajuan perlengkapan ATK di lingkungan Universitas Komputer Indonesia. Aplikasi ini menggantikan sistem lama dan menangani seluruh siklus: pembukaan periode pengajuan oleh admin, pengajuan barang oleh unit kerja, persetujuan per item, sampai pencetakan berkas dan rekap histori.
 
-## About Laravel
+Frontend-nya terpisah dan mengonsumsi API ini; produksi berjalan di `logistikatk.unikom.ac.id`.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Teknologi
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+| Komponen | Keterangan |
+| --- | --- |
+| Framework | Laravel 13 (PHP 8.2+) |
+| Autentikasi | Laravel Sanctum (bearer token) |
+| Basis data | MySQL |
+| Dokumentasi API | L5-Swagger, sumber di `docs/` |
+| Deploy | GitHub Actions via SSH, terpicu dari push ke `dev` |
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Alur Proses Kerja
 
-## Learning Laravel
+Inti aplikasi ini adalah satu siklus pengajuan yang berulang setiap periode akademik. Selama tidak ada **periode aktif**, pengguna tidak bisa mengajukan apa pun — jadi langkah admin di awal adalah pintu masuk seluruh proses.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```mermaid
+flowchart TD
+    A[Admin menyiapkan master data<br/>vendor, barang, jabatan, bagian, pengguna] --> B[Admin membuat jenis pengajuan<br/>tahunan / kelas / ujian / nonrutin]
+    B --> C[Admin membuka periode aktivasi<br/>tanggal mulai, selesai, tahun akademik]
+    C --> D[Pengguna login dan melihat periode aktif]
+    D --> E{Jenis pengajuan<br/>diizinkan untuk<br/>jabatan ini?}
+    E -- Tidak --> F[Ditolak 403]
+    E -- Ya --> G{Sudah pernah mengajukan<br/>di periode ini?}
+    G -- Sudah --> H[Ditolak 422]
+    G -- Belum --> I[Pengguna mengisi pengajuan<br/>barang master + barang lainnya + surat]
+    I --> J[Admin meninjau tiap item<br/>tetapkan jumlah disetujui dan status]
+    J --> K[Cetak berkas dan BAP<br/>rekap barang + total harga]
+    K --> L[Histori pengajuan<br/>arsip lintas periode]
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 1. Penyiapan master data
 
-## Contributing
+Admin mengelola data acuan yang dipakai seluruh proses: **vendor**, **barang** (nama, kategori, tipe, satuan, harga, vendor), **jabatan**, dan **bagian/unit**. Data pengguna bisa diisi manual atau ditarik dari API kepegawaian UNIKOM lewat `POST /api/users/sync`.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Kategori barang terbagi tiga — `atk_tahunan`, `atk_ujian`, `atk_kelas` — dan tipenya `habis_pakai` atau `tidak_habis_pakai`.
 
-## Code of Conduct
+### 2. Pembuatan jenis pengajuan
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Tabel `pengajuan` menyimpan *jenis* pengajuan, bukan pengajuan milik pengguna. Satu baris menggambarkan kombinasi:
 
-## Security Vulnerabilities
+- **tipe**: `tahunan`, `kelas`, `ujian`, atau `nonrutin`
+- **semester**: `ganjil`, `genap`, atau `tahunan`
+- **ujian**: `uts`, `uas`, atau `Default`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Pembukaan periode aktivasi
 
-## License
+Sebuah jenis pengajuan baru bisa dipakai setelah admin membuka periodenya di `aktivasi_pengajuan`, lengkap dengan `aktif_mulai`, `aktif_selesai`, `tahun_akademik`, dan tipe `rutin` atau `nonrutin`. Di luar rentang tanggal itu pengajuan ditolak.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Pengguna memeriksa periode yang sedang berjalan lewat `GET /api/periode-aktif`.
+
+### 4. Pengajuan oleh pengguna
+
+Pengguna login dan mengirim pengajuan lengkap ke `POST /api/daftar-pengajuan/full`. Satu pengajuan memuat dua jenis item:
+
+- **Barang master** — dipilih dari daftar barang yang sudah ada, hanya yang jumlahnya lebih dari nol yang disimpan.
+- **Barang lainnya** — barang di luar master, wajib menyertakan nama, satuan, kategori, alasan, dan boleh dilampiri bukti foto. Item ini otomatis diarahkan ke vendor internal bernama `Perlengkapan`.
+
+Pengajuan juga bisa melampirkan berkas **surat pengajuan**.
+
+Ada tiga aturan yang dijaga di titik ini:
+
+1. **Kewenangan jabatan.** Jabatan yang mengandung kata *dekan* atau *kaprodi* boleh mengajukan tipe `tahunan`, `kelas`, dan `ujian`. Jabatan lain hanya boleh `tahunan`.
+2. **Periode harus aktif.** Tanpa aktivasi yang sedang berjalan untuk tipe tersebut, pengajuan ditolak.
+3. **Satu pengajuan per periode.** Pengguna yang sudah mengajukan di periode yang sama tidak bisa mengajukan lagi.
+
+Seluruh penyimpanan dibungkus transaksi, sehingga kegagalan di tengah proses tidak meninggalkan pengajuan setengah jadi.
+
+### 5. Peninjauan dan persetujuan
+
+Admin membuka daftar pengajuan yang masuk, lalu menyetujui **per item**, bukan per pengajuan. Setiap item punya `jumlah_disetujui` yang bisa berbeda dari jumlah yang diminta, dan `status` bernilai `0`, `1`, atau `2`.
+
+- Barang master: `PATCH /api/admin/barang-pengajuan/{id}/approve`
+- Barang lainnya: `PATCH /api/admin/barang-pengajuan-lainnya/{id}/approve`
+
+### 6. Cetak berkas
+
+Setelah peninjauan selesai, admin merekap hasilnya lewat `GET /api/admin/cetak-berkas` dengan parameter `tahun` dan `id_aktivasi`, serta filter opsional `tipe` dan `kategori_atk`. Keluarannya adalah gabungan seluruh barang dari semua pengajuan pada periode itu beserta harga, subtotal, vendor, dan total keseluruhan — yang kemudian dicetak sebagai BAP.
+
+### 7. Histori
+
+Arsip lintas periode tersedia untuk admin di `GET /api/histori` dengan filter jabatan, bagian, dan aktivasi. Pengguna biasa melihat arsipnya sendiri di `GET /api/histori-pengajuan/my`.
+
+## Peran dan Hak Akses
+
+Autentikasi memakai bearer token Sanctum. Ada dua tingkat akses:
+
+| Peran | Cakupan |
+| --- | --- |
+| Pengguna | Membuat pengajuan, melihat pengajuan dan histori miliknya sendiri |
+| Admin | Seluruh master data, peninjauan dan persetujuan, cetak berkas, histori semua unit |
+
+Endpoint khusus admin berada di balik middleware `admin`; permintaan tanpa token dijawab `401`, dan token non-admin dijawab `403`.
+
+Perlu dicatat: batasan **jabatan** (dekan/kaprodi) terpisah dari **peran** (admin/pengguna). Jabatan menentukan jenis pengajuan yang boleh diajukan, peran menentukan menu yang bisa diakses.
+
+## Struktur Data Inti
+
+```
+pengajuan            jenis pengajuan (tipe, semester, ujian)
+  └── aktivasi_pengajuan     periode aktif (tanggal, tahun akademik, rutin/nonrutin)
+        └── daftar_pengajuan       satu pengajuan milik satu pengguna
+              ├── barang_pengajuan          item dari master barang
+              └── barang_pengajuan_lainnya  item di luar master
+
+barang → vendor            master barang beserta harga dan vendornya
+users  → jabatan, unit     pengguna beserta jabatan dan bagiannya
+```
+
+## Menjalankan Secara Lokal
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+Sesuaikan koneksi basis data di `.env`, lalu:
+
+```bash
+php artisan migrate
+php artisan serve
+```
+
+Dokumentasi Swagger tersedia setelah aplikasi berjalan; definisinya ada di `docs/api-docs.yaml` dan `docs/api-docs-v4.yaml`.
+
+## Perintah Khusus
+
+| Perintah | Fungsi |
+| --- | --- |
+| `php artisan app:sync-users` | Menarik data pengguna dari API kepegawaian UNIKOM |
+| `php artisan app:migrate-legacy` | Mengimpor data dari basis data sistem lama |
+| `php artisan app:db-clean` | Mengosongkan tabel-tabel aplikasi |
+
+Impor legacy membawa serta baris yang induknya sudah terhapus di sistem lama dengan membuat data pengganti, agar riwayat pengajuan tetap utuh dan foreign key tetap sah. Barang hasil impor masuk tanpa harga dan tanpa vendor, jadi keduanya perlu dilengkapi manual sesudahnya.
+
+## Deploy
+
+Push ke branch `dev` memicu GitHub Actions yang menjalankan `composer install`, `php artisan migrate --force`, dan `php artisan optimize:clear` di server melalui SSH.
