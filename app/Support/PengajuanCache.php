@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class PengajuanCache
 {
@@ -13,22 +14,46 @@ class PengajuanCache
 
     public static function remember(string $nama, array $konteks, Closure $callback)
     {
-        return Cache::remember(
-            self::kunci($nama, $konteks),
-            self::TTL,
-            $callback
-        );
+        $kunci = null;
+
+        try {
+            $kunci = self::kunci($nama, $konteks);
+
+            $tersimpan = Cache::get($kunci);
+
+            if ($tersimpan !== null) {
+                return $tersimpan;
+            }
+        } catch (Throwable $e) {
+            $kunci = null;
+        }
+
+        $nilai = $callback();
+
+        if ($kunci !== null) {
+            try {
+                Cache::put($kunci, $nilai, self::TTL);
+            } catch (Throwable $e) {
+                // cache gagal disimpan, data tetap dikembalikan apa adanya
+            }
+        }
+
+        return $nilai;
     }
 
     public static function flush(): void
     {
-        if (Cache::has(self::VERSION_KEY)) {
-            Cache::increment(self::VERSION_KEY);
+        try {
+            if (Cache::has(self::VERSION_KEY)) {
+                Cache::increment(self::VERSION_KEY);
 
-            return;
+                return;
+            }
+
+            Cache::forever(self::VERSION_KEY, 2);
+        } catch (Throwable $e) {
+            // kegagalan cache tidak boleh menggagalkan penyimpanan data
         }
-
-        Cache::forever(self::VERSION_KEY, 2);
     }
 
     private static function versi(): int
