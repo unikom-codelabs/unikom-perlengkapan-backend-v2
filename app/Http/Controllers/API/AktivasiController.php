@@ -10,6 +10,7 @@ use App\Http\Resources\AktivasiPengajuanResource;
 use App\Http\Resources\BarangPengajuanLainnyaResource;
 use App\Models\AktivasiPengajuan;
 use App\Models\DaftarPengajuan;
+use App\Models\Pengajuan;
 use App\Models\User;
 use App\Support\PengajuanCache;
 use Illuminate\Http\Request;
@@ -37,12 +38,66 @@ class AktivasiController extends Controller
         );
     }
 
+    private function selaraskanPengajuan(array $data, $idPengajuanAsal = null): array
+    {
+        $semester = $data['semester'] ?? null;
+
+        $ujian = $data['ujian'] ?? null;
+
+        unset($data['semester'], $data['ujian']);
+
+        if ($semester === null && $ujian === null) {
+            return ['data' => $data];
+        }
+
+        $idPengajuan = $data['id_pengajuan'] ?? $idPengajuanAsal;
+
+        $asal = $idPengajuan ? Pengajuan::find($idPengajuan) : null;
+
+        if (! $asal) {
+            return ['data' => $data];
+        }
+
+        if ($ujian !== null && strtolower($ujian) === 'default') {
+            $ujian = 'Default';
+        }
+
+        $semesterTarget = $semester ?? $asal->semester;
+
+        $ujianTarget = $ujian ?? $asal->ujian;
+
+        $target = Pengajuan::where('tipe', $asal->tipe)
+            ->where('semester', $semesterTarget)
+            ->where('ujian', $ujianTarget)
+            ->first();
+
+        if (! $target) {
+
+            $keterangan = $asal->tipe . ' semester ' . $semesterTarget;
+
+            if ($ujianTarget && strtolower($ujianTarget) !== 'default') {
+                $keterangan .= ' ' . strtoupper($ujianTarget);
+            }
+
+            return ['error' => 'Tidak ada jenis pengajuan ' . $keterangan . '.'];
+        }
+
+        $data['id_pengajuan'] = $target->id;
+
+        return ['data' => $data];
+    }
+
     public function store(StoreAktivasiPengajuanRequest $request)
     {
+        $hasil = $this->selaraskanPengajuan($request->validated());
+
+        if (isset($hasil['error'])) {
+            return ApiResponse::error($hasil['error'], 422);
+        }
 
         $aktivasi = AktivasiPengajuan::create(
 
-            $request->validated()
+            $hasil['data']
         );
 
         PengajuanCache::flush();
@@ -67,9 +122,18 @@ class AktivasiController extends Controller
         AktivasiPengajuan $aktivasiPengajuan
     ) {
 
+        $hasil = $this->selaraskanPengajuan(
+            $request->validated(),
+            $aktivasiPengajuan->id_pengajuan
+        );
+
+        if (isset($hasil['error'])) {
+            return ApiResponse::error($hasil['error'], 422);
+        }
+
         $aktivasiPengajuan->update(
 
-            $request->validated()
+            $hasil['data']
         );
 
         PengajuanCache::flush();

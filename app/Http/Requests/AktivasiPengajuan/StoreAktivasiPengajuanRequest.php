@@ -15,7 +15,9 @@ class StoreAktivasiPengajuanRequest extends FormRequest
             'aktif_mulai' => 'required|date',
             'aktif_selesai' => 'required|date|after:aktif_mulai',
             'tipe' => 'required|in:rutin,nonrutin',
-            'tahun_akademik' => 'required|string|max:20'
+            'tahun_akademik' => 'required|string|max:20',
+            'semester' => 'nullable|in:ganjil,genap,tahunan',
+            'ujian' => 'nullable|in:uts,uas,Default,default'
         ];
     }
 }
