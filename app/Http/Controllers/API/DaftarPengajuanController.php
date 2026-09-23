@@ -293,8 +293,21 @@ class DaftarPengajuanController extends Controller
         );
     }
 
+    private function boleh(DaftarPengajuan $daftarPengajuan): bool
+    {
+        return auth()->user()->role === 'admin'
+            || $daftarPengajuan->user_id === auth()->id();
+    }
+
     public function show(DaftarPengajuan $daftarPengajuan)
     {
+        if (! $this->boleh($daftarPengajuan)) {
+
+            return ApiResponse::error(
+                'Anda tidak memiliki akses untuk melihat pengajuan ini.',
+                403
+            );
+        }
 
         return ApiResponse::success(
 
@@ -311,6 +324,13 @@ class DaftarPengajuanController extends Controller
         UpdateDaftarPengajuanRequest $request,
         DaftarPengajuan $daftarPengajuan
     ) {
+        if (! $this->boleh($daftarPengajuan)) {
+
+            return ApiResponse::error(
+                'Anda tidak memiliki akses untuk mengubah pengajuan ini.',
+                403
+            );
+        }
 
         $daftarPengajuan->update(
 
@@ -329,6 +349,13 @@ class DaftarPengajuanController extends Controller
 
     public function destroy(DaftarPengajuan $daftarPengajuan)
     {
+        if (! $this->boleh($daftarPengajuan)) {
+
+            return ApiResponse::error(
+                'Anda tidak memiliki akses untuk menghapus pengajuan ini.',
+                403
+            );
+        }
 
         $daftarPengajuan->delete();
 
