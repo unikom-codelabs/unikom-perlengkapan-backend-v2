@@ -41,9 +41,29 @@ class DaftarPengajuanController extends Controller
 
         $allowedTipe = ['tahunan'];
 
+        $kaprodiAlias = [
+            'kaprodi',
+            'ka prodi',
+            'ka. prodi',
+            'ketua prodi',
+            'ketua program studi',
+        ];
+
+        $isKaprodi = false;
+
+        foreach ($kaprodiAlias as $alias) {
+
+            if (str_contains($jabatan, $alias)) {
+
+                $isKaprodi = true;
+
+                break;
+            }
+        }
+
         if (
             str_contains($jabatan, 'dekan') ||
-            str_contains($jabatan, 'kaprodi')
+            $isKaprodi
         ) {
             $allowedTipe = [
                 'tahunan',
