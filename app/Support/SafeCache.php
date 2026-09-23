@@ -15,7 +15,7 @@ class SafeCache
         try {
             $tersimpan = Cache::get($kunci);
 
-            if ($tersimpan !== null) {
+            if ($tersimpan !== null && CacheGuard::utuh($tersimpan)) {
                 return $tersimpan;
             }
         } catch (Throwable $e) {
@@ -24,7 +24,7 @@ class SafeCache
 
         $nilai = $callback();
 
-        if ($bolehSimpan) {
+        if ($bolehSimpan && CacheGuard::layakSimpan($nilai)) {
             try {
                 Cache::put($kunci, $nilai, $ttl);
             } catch (Throwable $e) {

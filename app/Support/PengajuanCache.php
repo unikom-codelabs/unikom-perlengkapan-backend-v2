@@ -5,6 +5,7 @@ namespace App\Support;
 use Closure;
 use Illuminate\Support\Facades\Cache;
 use Throwable;
+use App\Support\CacheGuard;
 
 class PengajuanCache
 {
@@ -21,7 +22,7 @@ class PengajuanCache
 
             $tersimpan = Cache::get($kunci);
 
-            if ($tersimpan !== null) {
+            if ($tersimpan !== null && CacheGuard::utuh($tersimpan)) {
                 return $tersimpan;
             }
         } catch (Throwable $e) {
@@ -30,7 +31,7 @@ class PengajuanCache
 
         $nilai = $callback();
 
-        if ($kunci !== null) {
+        if ($kunci !== null && CacheGuard::layakSimpan($nilai)) {
             try {
                 Cache::put($kunci, $nilai, self::TTL);
             } catch (Throwable $e) {
