@@ -8,8 +8,8 @@ use App\Http\Requests\UnitType\StoreUnitTypeRequest;
 use App\Http\Requests\UnitType\UpdateUnitTypeRequest;
 use App\Http\Resources\UnitTypeResource;
 use App\Models\UnitType;
+use App\Support\SafeCache;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 
 class UnitTypeController extends Controller
 {
@@ -44,7 +44,7 @@ class UnitTypeController extends Controller
     public function store(StoreUnitTypeRequest $request)
     {
         $data = UnitType::create($request->validated());
-        Cache::forget('dropdown_units');
+        SafeCache::forget('dropdown_units');
 
         return ApiResponse::created(
             new UnitTypeResource($data)
@@ -63,7 +63,7 @@ class UnitTypeController extends Controller
     public function update(UpdateUnitTypeRequest $request, UnitType $unitType)
     {
         $unitType->update($request->validated());
-        Cache::forget('dropdown_units');
+        SafeCache::forget('dropdown_units');
 
         return ApiResponse::success(
             new UnitTypeResource($unitType)
@@ -73,7 +73,7 @@ class UnitTypeController extends Controller
     public function destroy(UnitType $unitType)
     {
         $unitType->delete();
-        Cache::forget('dropdown_units');
+        SafeCache::forget('dropdown_units');
 
         return ApiResponse::deleted();
     }

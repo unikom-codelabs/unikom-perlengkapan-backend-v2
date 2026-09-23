@@ -299,7 +299,7 @@ class UserController extends Controller
             DB::table('users')->insert($chunk);
         }
 
-        \Illuminate\Support\Facades\Cache::forget('dropdown_units');
+        \App\Support\SafeCache::forget('dropdown_units');
 
         return ApiResponse::success([
             'total' => count($usersToInsert),
@@ -308,7 +308,7 @@ class UserController extends Controller
 
     public function dropdown()
     {
-        $units = \Illuminate\Support\Facades\Cache::remember('dropdown_units', 3600, function () {
+        $units = \App\Support\SafeCache::remember('dropdown_units', 3600, function () {
             return UnitType::with('childrenRecursive')
                 ->whereNull('parent_id')
                 ->get();
