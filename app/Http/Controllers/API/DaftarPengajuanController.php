@@ -27,12 +27,6 @@ class DaftarPengajuanController extends Controller
 
     public function storeFull(StoreFullDaftarPengajuanRequest $request)
     {
-        \Illuminate\Support\Facades\Log::info('StoreFull Request Debug', [
-            'all' => $request->all(),
-            'files' => $request->allFiles(),
-            'barang_lainnya_raw' => $request->input('barang_lainnya'),
-        ]);
-
         $data = $request->validated();
 
         $user = auth()->user()->load('jabatan');
@@ -213,20 +207,26 @@ class DaftarPengajuanController extends Controller
                 'Pengajuan berhasil dibuat'
             );
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
 
             DB::rollBack();
 
             if (isset($pengajuan) && $pengajuan->exists) {
                 try {
                     $pengajuan->delete();
-                } catch (\Exception $deleteEx) {
-                    
+                } catch (\Throwable $deleteEx) {
+
                 }
             }
 
+            try {
+                report($e);
+            } catch (\Throwable $reportEx) {
+
+            }
+
             return ApiResponse::error(
-                $e->getMessage(),
+                'Pengajuan gagal disimpan. Silakan coba lagi atau hubungi administrator.',
                 500
             );
         }
