@@ -56,7 +56,23 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
     {
         return [
             'tipe' => ['required', 'in:tahunan,ujian,kelas'],
-             
+
+            'semester' => [
+                'nullable',
+                'in:ganjil,genap,tahunan',
+            ],
+
+            'ujian' => [
+                'nullable',
+                'in:uts,uas,Default,default',
+            ],
+
+            'id_aktivasi' => [
+                'nullable',
+                'integer',
+                'exists:aktivasi_pengajuan,id',
+            ],
+
             'date' => [
                 'nullable',
                 'date',

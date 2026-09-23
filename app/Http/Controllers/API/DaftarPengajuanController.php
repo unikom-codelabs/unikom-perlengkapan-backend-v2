@@ -39,12 +39,13 @@ class DaftarPengajuanController extends Controller
 
         $jabatan = strtolower($user->jabatan->nama ?? '');
 
+        $jabatan = trim(preg_replace('/\s+/', ' ', str_replace('.', ' ', $jabatan)));
+
         $allowedTipe = ['tahunan'];
 
         $kaprodiAlias = [
             'kaprodi',
             'ka prodi',
-            'ka. prodi',
             'ketua prodi',
             'ketua program studi',
         ];
@@ -80,22 +81,55 @@ class DaftarPengajuanController extends Controller
             );
         }
 
-        $aktivasi = AktivasiPengajuan::with('pengajuan')
-            ->whereHas('pengajuan', function ($q) use ($data) {
+        $semester = $data['semester'] ?? null;
+
+        $ujian = $data['ujian'] ?? null;
+
+        if ($ujian !== null && strtolower($ujian) === 'default') {
+            $ujian = 'Default';
+        }
+
+        $query = AktivasiPengajuan::with('pengajuan')
+            ->whereHas('pengajuan', function ($q) use ($data, $semester, $ujian) {
+
                 $q->where('tipe', $data['tipe']);
+
+                if ($semester) {
+                    $q->where('semester', $semester);
+                }
+
+                if ($ujian) {
+                    $q->where('ujian', $ujian);
+                }
             })
             ->whereDate('aktif_mulai', '<=', now())
-            ->whereDate('aktif_selesai', '>=', now())
-            ->latest('id')
-            ->first();
+            ->whereDate('aktif_selesai', '>=', now());
 
-        if (! $aktivasi) {
+        if (! empty($data['id_aktivasi'])) {
+            $query->where('id', $data['id_aktivasi']);
+        }
+
+        $kandidat = $query->orderByDesc('id')->get();
+
+        if ($kandidat->isEmpty()) {
 
             return ApiResponse::error(
                 'Tidak ada periode pengajuan aktif',
                 422
             );
         }
+
+        if ($kandidat->count() > 1) {
+
+            return ApiResponse::error(
+                'Terdapat lebih dari satu periode aktif untuk tipe ini: '
+                . $kandidat->map(fn ($a) => $a->pengajuan?->semester)->filter()->unique()->implode(', ')
+                . '. Pilih semester yang dimaksud.',
+                422
+            );
+        }
+
+        $aktivasi = $kandidat->first();
 
         $sudahMengajukan = DaftarPengajuan::where('user_id', auth()->id())
             ->where('id_aktivasi', $aktivasi->id)
