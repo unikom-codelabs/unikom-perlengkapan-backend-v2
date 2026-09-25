@@ -15,8 +15,6 @@ return new class extends Migration
     {
         $asal = DB::table('barang')->where('nama', self::NAMA_LAMA)->first();
 
-        // Ikut atribut baris spidol yang sudah ada supaya varian warnanya
-        // muncul di kategori dan satuan yang sama.
         $kategori = $asal->kategori ?? 'atk_kelas';
         $tipe = $asal->tipe ?? 'habis_pakai';
         $unit = $asal->unit ?? 'Buah';
@@ -44,9 +42,6 @@ return new class extends Migration
             ]);
         }
 
-        // Baris lamanya dipakai 37 pengajuan, jadi tidak dihapus. Namanya
-        // diperjelas supaya tidak dipilih lagi untuk pengajuan baru, dan
-        // riwayatnya tetap jujur: dulu memang tanpa keterangan warna.
         if ($asal) {
             DB::table('barang')
                 ->where('id', $asal->id)
@@ -69,8 +64,6 @@ return new class extends Migration
                 continue;
             }
 
-            // Hanya dibuang kalau belum pernah dipakai, supaya rollback tidak
-            // menghapus riwayat pengajuan siapa pun.
             $dipakai = DB::table('barang_pengajuan')
                 ->where('id_barang', $barang->id)
                 ->exists();
