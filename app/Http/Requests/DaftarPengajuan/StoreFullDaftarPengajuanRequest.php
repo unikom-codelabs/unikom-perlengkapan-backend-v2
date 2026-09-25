@@ -106,6 +106,7 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             'barang_lainnya' => [
                 'nullable',
                 'array',
+                'prohibited_unless:tipe,tahunan',
             ],
 
             'barang_lainnya.*.nama' => [
@@ -167,6 +168,8 @@ class StoreFullDaftarPengajuanRequest extends FormRequest
             'barang.*.jumlah.max' => 'Jumlah maksimal 2.147.483.647.',
             'barang.*.jumlah.integer' => 'Jumlah harus berupa bilangan bulat.',
             'barang.*.jumlah.numeric' => 'Jumlah harus berupa angka yang valid.',
+
+            'barang_lainnya.prohibited_unless' => 'Pengajuan lainnya hanya tersedia untuk ATK Tahunan.',
 
             'barang_lainnya.*.jumlah.min' => 'Jumlah minimal 1.',
             'barang_lainnya.*.jumlah.max' => 'Jumlah maksimal 2.147.483.647.',

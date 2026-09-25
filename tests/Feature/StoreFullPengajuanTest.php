@@ -71,6 +71,43 @@ class StoreFullPengajuanTest extends TestCase
         $this->assertSame(0, DaftarPengajuan::count());
     }
 
+    public function test_barang_lainnya_ditolak_untuk_kelas(): void
+    {
+        $this->duaPeriodeKelasAktif();
+
+        Sanctum::actingAs(User::factory()->jabatan('Kaprodi')->create());
+
+        $this->postJson('/api/daftar-pengajuan/full', [
+            'tipe' => 'kelas',
+            'semester' => 'ganjil',
+            'barang_lainnya' => [
+                [
+                    'nama' => 'Spidol merek lain',
+                    'jumlah' => 2,
+                    'kategori' => 'habis_pakai',
+                    'satuan' => 'Buah',
+                ],
+            ],
+        ])->assertStatus(422);
+
+        $this->assertSame(0, DaftarPengajuan::count());
+    }
+
+    public function test_barang_lainnya_kosong_tetap_boleh_untuk_kelas(): void
+    {
+        [$ganjil] = $this->duaPeriodeKelasAktif();
+
+        Sanctum::actingAs(User::factory()->jabatan('Kaprodi')->create());
+
+        $this->postJson('/api/daftar-pengajuan/full', [
+            'tipe' => 'kelas',
+            'semester' => 'ganjil',
+            'barang_lainnya' => [],
+        ])->assertOk();
+
+        $this->assertSame($ganjil->id, DaftarPengajuan::first()->id_aktivasi);
+    }
+
     public function test_dua_periode_aktif_tanpa_semester_ditolak_bukan_ditebak(): void
     {
         $this->duaPeriodeKelasAktif();
