@@ -44,8 +44,11 @@ class CetakBerkasController extends Controller
             'barang.barang.vendor',
             'barangLainnya',
         ])
-        ->where('id_aktivasi', $aktivasi)
-        ->whereYear('created_at', $tahun);
+        // id_aktivasi sudah mengunci data ke satu periode. Menyaring lagi
+        // dengan tahun dibuatnya baris hanya bisa salah membuang: untuk
+        // periode 2026/2027 frontend mengirim tahun 2027, sedangkan
+        // pengajuannya dibuat pada 2026.
+        ->where('id_aktivasi', $aktivasi);
 
         
         if ($tipe) {
